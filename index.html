@@ -33,13 +33,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Google Fonts Sammlung -->
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
 
-    <!-- Babel für JSX -->
+
+
+
+<!-- Babel für JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <!-- Import Map -->
@@ -319,6 +317,7 @@
     <div id="root" class="h-full w-full overflow-y-auto"></div>
 
     <script type="text/babel" data-type="module">
+console.log("BUILD: fix5");
         import React, { useState, useEffect, useMemo, useRef } from 'react';
         import { createRoot } from 'react-dom/client';
         import { 
@@ -5427,7 +5426,6 @@
                                     >
                                         <Bell size={16} className="inline mr-2"/> {t('notificationEnableBtn')}
                                     </button>
-                                )}
                                 
                                 <div className={`p-3 rounded-lg ${themeClasses.listItem}`}>
                                     <div className="text-xs font-bold mb-2">FCM VAPID Key</div>

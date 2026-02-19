@@ -3,7 +3,7 @@
    - Firebase Cloud Messaging (background push)
 */
 
-const CACHE_NAME = 'timeroster-ghpwa-v4';
+const CACHE_NAME = 'timeroster-ghpwa-v5';
 const APP_SHELL = [
   './',
   './index.html',
