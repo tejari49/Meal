@@ -3187,7 +3187,7 @@
                     }
                     
                     if (hasOperations) {
-                        await batch.commit();
+                        batch.commit();
                     }
                     
                     setMessages(msgs.reverse());
@@ -8392,7 +8392,7 @@ function TimeRosterApp() {
                         }
                     });
                     if (updated) {
-                        await batch.commit();
+                        batch.commit();
                     }
                     setPurgedTimezoneData(true);
                 };
@@ -8932,7 +8932,7 @@ function TimeRosterApp() {
                                     );
                                     batch.set(newEventRef, eventDoc.data());
                                 });
-                                await batch.commit();
+                                batch.commit();
                                 console.log('Migrated existing events to default calendar');
                             }
 
@@ -8948,7 +8948,7 @@ function TimeRosterApp() {
                                     );
                                     batch.set(newScheduleRef, scheduleDoc.data());
                                 });
-                                await batch.commit();
+                                batch.commit();
                                 console.log('Migrated existing schedule to default calendar');
                             }
                             
@@ -8964,7 +8964,7 @@ function TimeRosterApp() {
                                     );
                                     batch.set(newShiftRef, shiftDoc.data());
                                 });
-                                await batch.commit();
+                                batch.commit();
                                 console.log('Migrated existing shifts to default calendar');
                             }
                         } else {
@@ -9195,7 +9195,7 @@ function TimeRosterApp() {
                         const fid = fdoc.id;
                         batch.set(doc(db, 'artifacts', appId, 'users', fid, 'friends', user.uid), { name: newName }, { merge: true });
                     });
-                    await batch.commit();
+                    batch.commit();
                     setDisplayName(newName);
                     alert(t('nameSaved'));
                 } catch (e) {
@@ -9462,7 +9462,7 @@ setShowEventModal(false);
                         }
                     }
                 });
-                await batch.commit();
+                batch.commit();
             };
             
             const updateParticipantStatus = async (eventId, userId, newStatus) => {
@@ -9801,7 +9801,7 @@ setShowEventModal(false);
                             calendarId
                         });
                     });
-                    await batch.commit();
+                    batch.commit();
                     const syncPayload = {
                         ts: Date.now(),
                         calendarId,
