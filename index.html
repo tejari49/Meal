@@ -367,7 +367,7 @@
             console.warn('FCM not available in this environment:', e?.message || e);
         }
         const APP_URL = "https://tejari49.github.io/Meal/";
-        const DEFAULT_VAPID_KEY = ""; // Set your Web Push certificate key (VAPID public key) in Settings to enable push.
+        const DEFAULT_VAPID_KEY = ""; // Admin config: set the Web Push certificate key (VAPID public key) once (per app/project) to enable push on this device.
         const getVapidKey = () => (localStorage.getItem('timeroster_fcm_vapid_key') || DEFAULT_VAPID_KEY || '').trim();
 
 
@@ -5430,7 +5430,7 @@
                                 )}
                                 
                                 <div className={`p-3 rounded-lg ${themeClasses.listItem}`}>
-                                    <div className="text-xs font-bold mb-2">FCM VAPID Key</div>
+                                    <div className="text-xs font-bold mb-2">FCM VAPID Public Key (Admin)</div>
                                     <input
                                         value={vapidKey}
                                         onChange={(e) => setVapidKey(e.target.value)}
@@ -8499,7 +8499,7 @@ function TimeRosterApp() {
 
                     const vapidKey = getVapidKey();
                     if (!vapidKey) {
-                        console.warn('No VAPID key set.');
+                        console.warn('Missing VAPID key (admin config) – push is not enabled yet.');
                         return false;
                     }
 

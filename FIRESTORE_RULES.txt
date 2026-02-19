@@ -67,7 +67,16 @@ service cloud.firestore {
         }
       }
 
-      // Secret share codes (doc id = code)
+      
+
+// Public friend codes (doc id = code) - used by app UI "friend code"
+match /public_profiles/{code} {
+  allow read: if signedIn();
+  allow create, update: if signedIn() && request.resource.data.userId == request.auth.uid;
+  allow delete: if false;
+}
+
+// Secret share codes (doc id = code)
       match /secret_public_codes/{code} {
         allow read: if signedIn();
         allow create, update: if signedIn() && request.resource.data.userId == request.auth.uid;
