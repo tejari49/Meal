@@ -1,8 +1,9 @@
 /* TimeRoster GitHub Pages PWA Service Worker
-   - Offline app shell
-   - Simple runtime caching for external CDNs
+   - Offline app shell caching
+   - Firebase Cloud Messaging (background push)
 */
-const CACHE_NAME = 'timeroster-ghpwa-v1';
+
+const CACHE_NAME = 'timeroster-ghpwa-v4';
 const APP_SHELL = [
   './',
   './index.html',
@@ -11,12 +12,74 @@ const APP_SHELL = [
   './icons/icon-512.png',
 ];
 
+const APP_URL = 'https://tejari49.github.io/Meal/';
+
+// ---- Firebase Messaging (Compat) ----
+// Uses compat builds because Service Workers don't support ESM imports here.
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+  apiKey: "AIzaSyCLqi-PxHdeyt51u9i50tY0NhOAUbutW9g",
+  authDomain: "calender-rai.firebaseapp.com",
+  projectId: "calender-rai",
+  storageBucket: "calender-rai.firebasestorage.app",
+  messagingSenderId: "989981793002",
+  appId: "1:989981793002:web:d23ba8bf2c30d6b8649593",
+  measurementId: "G-CZLXPHK9GK"
+});
+
+const messaging = firebase.messaging();
+
+// Background messages (neutral text)
+messaging.onBackgroundMessage((payload) => {
+  try {
+    const title = 'Kalender aktualisiert';
+    const body = 'Es gibt neue Updates.';
+    const dataUrl = (payload && payload.data && payload.data.url) ? payload.data.url : APP_URL;
+
+    self.registration.showNotification(title, {
+      body,
+      tag: 'timeroster-update',
+      data: { url: dataUrl }
+    });
+  } catch (e) {
+    // ignore
+  }
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = (event.notification && event.notification.data && event.notification.data.url) ? event.notification.data.url : APP_URL;
+
+  event.waitUntil((async () => {
+    const allClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of allClients) {
+      try {
+        if (client.url && client.url.startsWith(APP_URL)) {
+          await client.focus();
+          return;
+        }
+      } catch (e) {}
+    }
+    await clients.openWindow(url);
+  })());
+});
+
+// ---- App Shell Caching ----
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(APP_SHELL))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    // cache each file individually so one missing file doesn't break install
+    await Promise.all(APP_SHELL.map(async (p) => {
+      try {
+        await cache.add(p);
+      } catch (e) {
+        // ignore single failures
+      }
+    }));
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (event) => {
@@ -29,18 +92,15 @@ self.addEventListener('activate', (event) => {
 
 async function cachePutSafe(cache, request, response) {
   try {
-    // Don't cache errors
-    if (!response || response.status === 0) {
-      // opaque (status 0) is OK to cache
+    if (!response) return;
+    if (response.status === 0) {
       await cache.put(request, response.clone());
       return;
     }
     if (response.ok) {
       await cache.put(request, response.clone());
     }
-  } catch (e) {
-    // ignore cache failures (quota, opaque restrictions, etc.)
-  }
+  } catch (e) {}
 }
 
 self.addEventListener('fetch', (event) => {
@@ -49,7 +109,7 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(req.url);
 
-  // SPA / navigation: network-first, fallback to cached index
+  // navigation requests: network-first, fallback to cached index
   if (req.mode === 'navigate') {
     event.respondWith((async () => {
       try {
@@ -65,7 +125,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Same-origin: cache-first, then update
+  // same-origin: cache-first, then update
   if (url.origin === self.location.origin) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
@@ -83,7 +143,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cross-origin (CDNs): stale-while-revalidate
+  // cross-origin: stale-while-revalidate (best-effort)
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(req);

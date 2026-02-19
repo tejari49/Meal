@@ -38,7 +38,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Verdana&display=swap" rel="stylesheet">
 
     <!-- Babel für JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -75,7 +74,7 @@
         .font-playfair { font-family: 'Great Vibes', cursive; }
         .font-merriweather { font-family: 'Atkinson Hyperlegible', sans-serif; }
         .font-oswald { font-family: 'Bebas Neue', sans-serif; }
-        .font-msn { font-family: 'Verdana', sans-serif; }
+        .font-msn { font-family: Verdana, Geneva, Tahoma, sans-serif; }
         ::-webkit-scrollbar { width: 0px; background: transparent; }
 
         .msn-window {
@@ -359,6 +358,19 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+
+        // --- Firebase Messaging (FCM) ---
+        let messaging = null;
+        try {
+            messaging = getMessaging(app);
+        } catch (e) {
+            console.warn('FCM not available in this environment:', e?.message || e);
+        }
+        const APP_URL = "https://tejari49.github.io/Meal/";
+        const DEFAULT_VAPID_KEY = ""; // Set your Web Push certificate key (VAPID public key) in Settings to enable push.
+        const getVapidKey = () => (localStorage.getItem('timeroster_fcm_vapid_key') || DEFAULT_VAPID_KEY || '').trim();
+
+
         const appId = "timeroster-app";
         const getHostedBaseUrl = () => {
             const normalizeUrl = (value) => {
@@ -2802,7 +2814,7 @@
         const INPUT_REFOCUS_DELAY = 50;
         const DEFAULT_MESSAGE_SETTINGS = { readOnce: false, expiry: '24h' };
         
-        const SecretMsnMessages = ({ user, onClose, queuePushNotification }) => {
+        const SecretMsnMessages = ({ user, onClose, queuePushNotification, initialOpen, notificationPrefs, saveNotificationPrefs }) => {
             const [view, setView] = useState('list'); // list | add | message | profile | friendProfile | createGroup
             const [contacts, setContacts] = useState([]);
             const [groups, setGroups] = useState([]);
@@ -2810,6 +2822,37 @@
             const [messages, setMessages] = useState([]);
             const [input, setInput] = useState('');
             const [myCode, setMyCode] = useState('');
+            const ensureSecretContact = async (friendId, name = '') => {
+                if (!user || !friendId) return;
+                try {
+                    const ref = doc(db, 'artifacts', appId, 'users', user.uid, 'secret_contacts', friendId);
+                    await setDoc(ref, {
+                        friendId,
+                        name: (name || '').trim() || friendId.slice(0, 6) + '…',
+                        updatedAt: serverTimestamp()
+                    }, { merge: true });
+                } catch (e) {
+                    console.warn('ensureSecretContact failed:', e?.message || e);
+                }
+            };
+
+            // Deep-link: open chat from outside (Messages tab)
+            useEffect(() => {
+                if (!initialOpen?.friendId) return;
+                (async () => {
+                    await ensureSecretContact(initialOpen.friendId, initialOpen.friendName || '');
+                })();
+            }, [initialOpen?.friendId]);
+
+            useEffect(() => {
+                if (!initialOpen?.friendId) return;
+                const c = contacts.find(x => x.friendId === initialOpen.friendId);
+                if (c) {
+                    setActiveConversation(c);
+                    setView('message');
+                }
+            }, [initialOpen?.friendId, contacts]);
+
             const [addCode, setAddCode] = useState('');
             const [requests, setRequests] = useState([]);
             const [profile, setProfile] = useState({ username: '', avatar: '', statusText: '', bio: '' });
@@ -3511,21 +3554,31 @@
                     const targetId = snap.docs[0].data().userId;
                     if(targetId === user.uid) return alert(t('selfRequest'));
                     await addDoc(collection(db, 'artifacts', appId, 'secret_requests'), { from: user.uid, fromName: user.email || t('guest'), to: targetId, status: 'pending', ts: serverTimestamp() });
-                    // Queue push notification for friend request
-                    queuePushNotification(
-                        targetId,
-                        t('notificationFriendRequest'),
-                        `${user.email || t('guest')} ${t('notificationFriendRequestBody')}`,
-                        { type: 'friend_request', fromUserId: user.uid }
-                    );
                     alert(t('requestSent')); setAddCode(''); setView('list');
                 } else alert(t('codeNotFound'));
             };
 
             const acceptRequest = async (req) => {
-                await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'secret_contacts', req.from), { friendId: req.from, name: req.fromName });
-                await setDoc(doc(db, 'artifacts', appId, 'users', req.from, 'secret_contacts', user.uid), { friendId: user.uid, name: user.email || t('guest') });
-                await deleteDoc(doc(db, 'artifacts', appId, 'secret_requests', req.id));
+                try {
+                    await setDoc(
+                        doc(db, 'artifacts', appId, 'users', user.uid, 'secret_contacts', req.from),
+                        { friendId: req.from, name: req.fromName || (req.from || '').slice(0, 6) + '…', acceptedAt: serverTimestamp() },
+                        { merge: true }
+                    );
+                    // Mark accepted so Cloud Function can mirror contact to requester (no client cross-writes needed)
+                    await setDoc(
+                        doc(db, 'artifacts', appId, 'secret_requests', req.id),
+                        {
+                            status: 'accepted',
+                            acceptedAt: serverTimestamp(),
+                            toName: user.email || t('guest'),
+                            to: user.uid
+                        },
+                        { merge: true }
+                    );
+                } catch (e) {
+                    console.error('acceptRequest error', e);
+                }
             };
 
             const saveMyProfile = async () => {
@@ -3830,6 +3883,32 @@
                                         </label>
                                         <div className={`text-[10px] mt-1.5 ml-7 ${messagesDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>{t('amoledHint')}</div>
                                     </div>
+
+                                    <div className={`border-t pt-4 mt-4 ${messagesDarkMode ? 'border-white/5' : 'border-gray-200'}`}>
+                                        <div className={`text-xs font-medium mb-3 ${messagesDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{t('notificationSettings')}</div>
+                                        <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border transition ${messagesDarkMode ? 'bg-white/5 border-white/10 hover:bg-white/8' : 'bg-slate-50 border-gray-200 hover:bg-slate-100'}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={(notificationPrefs?.friendRequests !== false)}
+                                                onChange={(e) => saveNotificationPrefs && saveNotificationPrefs({ ...(notificationPrefs || {}), friendRequests: e.target.checked })}
+                                                className="w-4 h-4 rounded"
+                                            />
+                                            <span className="text-sm flex-1 font-medium">{t('notificationFriendRequests')}</span>
+                                            <UserPlus size={14} className="opacity-40"/>
+                                        </label>
+                                        <label className={`mt-2 flex items-center gap-3 cursor-pointer p-3 rounded-xl border transition ${messagesDarkMode ? 'bg-white/5 border-white/10 hover:bg-white/8' : 'bg-slate-50 border-gray-200 hover:bg-slate-100'}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={(notificationPrefs?.chatMessages !== false)}
+                                                onChange={(e) => saveNotificationPrefs && saveNotificationPrefs({ ...(notificationPrefs || {}), chatMessages: e.target.checked })}
+                                                className="w-4 h-4 rounded"
+                                            />
+                                            <span className="text-sm flex-1 font-medium">{t('notificationChatMessages')}</span>
+                                            <MessageCircle size={14} className="opacity-40"/>
+                                        </label>
+                                        <div className={`text-[10px] mt-1.5 ml-7 ${messagesDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>Diese Einstellungen steuern die Popups/Toasts auch im Secret-Chat.</div>
+                                    </div>
+
 
                                     <div className="flex gap-3 pt-3">
                             <button onClick={() => setView('list')} className={`text-sm font-medium ${messagesDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{t('back')}</button>
@@ -4778,33 +4857,56 @@
                 return () => unsub();
             }, [user]);
 
-                        const addFriend = async () => {
+                        const addFriend = () => {
                 const code = (friendCode || '').trim();
-                if(!code) return;
+                if (!code) return;
                 setLoading(true);
-                try {
-                    const snap = await getDoc(doc(db, 'artifacts', appId, 'public_profiles', code));
-                    if (!snap.exists()) { alert(t('codeNotFound')); setLoading(false); return; }
-                    const profileData = snap.data();
-                    const fid = profileData.userId;
-                    const friendName = profileData.name || 'Friend';
-                    if(fid === user.uid) { setLoading(false); return alert(t('selfRequest')); }
-                    const myName = (currentUserName || '').trim() || getUserName(user);
-                    const batch = writeBatch(db);
-                    batch.set(doc(db, 'artifacts', appId, 'users', user.uid, 'friends', fid), { status: 'pending_sent', shareCode: code, name: friendName });
-                    batch.set(doc(db, 'artifacts', appId, 'users', fid, 'friends', user.uid), { status: 'pending_received', shareCode: currentShareCode, name: myName });
-                    await batch.commit();
-                    alert(t('requestSent')); setFriendCode('');
-                } catch(e) { console.error(e); alert(t('errorAddFriend')); }
-                setLoading(false);
+
+                const profileRef = doc(db, 'artifacts', appId, 'public_profiles', code);
+                getDoc(profileRef)
+                    .then((snap) => {
+                        if (!snap.exists()) throw new Error('CODE_NOT_FOUND');
+                        const profileData = snap.data() || {};
+                        const fid = profileData.userId;
+                        const friendName = profileData.name || 'Friend';
+                        if (!fid) throw new Error('INVALID_PROFILE');
+                        if (fid === user.uid) throw new Error('SELF_REQUEST');
+
+                        const myName = (currentUserName || '').trim() || getUserName(user);
+                        const batch = writeBatch(db);
+                        batch.set(doc(db, 'artifacts', appId, 'users', user.uid, 'friends', fid), {
+                            status: 'pending_sent',
+                            shareCode: code,
+                            name: friendName
+                        });
+                        batch.set(doc(db, 'artifacts', appId, 'users', fid, 'friends', user.uid), {
+                            status: 'pending_received',
+                            shareCode: currentShareCode,
+                            name: myName
+                        });
+                        return batch.commit();
+                    })
+                    .then(() => {
+                        alert(t('requestSent'));
+                        setFriendCode('');
+                    })
+                    .catch((e) => {
+                        console.error(e);
+                        const msg = String(e && e.message ? e.message : e);
+                        if (msg.includes('CODE_NOT_FOUND')) return alert(t('codeNotFound'));
+                        if (msg.includes('SELF_REQUEST')) return alert(t('selfRequest'));
+                        alert(t('errorAddFriend'));
+                    })
+                    .finally(() => setLoading(false));
             };
 
 
-            const accept = async (fid) => {
+            const accept = (fid) => {
+                if (!fid) return;
                 const batch = writeBatch(db);
                 batch.update(doc(db, 'artifacts', appId, 'users', user.uid, 'friends', fid), { status: 'accepted' });
                 batch.update(doc(db, 'artifacts', appId, 'users', fid, 'friends', user.uid), { status: 'accepted' });
-                await batch.commit();
+                batch.commit().catch((e) => console.error('accept friend error', e));
             };
 
             return (
@@ -4827,12 +4929,14 @@
         };
 
         // --- SETTINGS COMPONENT ---
-            const SettingsView = ({ theme, setTheme, lang, setLang, fontScale, setFontScale, currentFont, setCurrentFont, shifts, saveShiftConfig, deleteShift, signOut, themeClasses, user, shareCode, displayName, setDisplayName, onSaveDisplayName, onOpenVisualEditor, onOpenFriends, settingsEditorLang, setSettingsEditorLang, openCustomThemeWizard, onApplyAiDesign, onOpenCalendarManager, onOpenCalendarSettings, onExportCalendarICS, calendars, friends, activeCalendarId, setActiveCalendarId, updateCalendar, shareCalendarWithUser, holidayCountries, holidayCountriesLoading, holidayCountriesError, holidayPref, setHolidayPref, holidaySyncing, holidayLastSync, onSyncHolidays, holidayFilter, setHolidayFilter, notificationPrefs, saveNotificationPrefs, notificationsSupported, fcmToken, requestNotificationPermission, pwaInstallPrompt, isPwaInstalled, installPwa }) => {
+            const SettingsView = ({ theme, setTheme, lang, setLang, fontScale, setFontScale, currentFont, setCurrentFont, shifts, saveShiftConfig, deleteShift, signOut, themeClasses, user, shareCode, displayName, setDisplayName, onSaveDisplayName, onOpenVisualEditor, onOpenFriends, settingsEditorLang, setSettingsEditorLang, openCustomThemeWizard, onApplyAiDesign, onOpenCalendarManager, onOpenCalendarSettings, onExportCalendarICS, calendars, friends, activeCalendarId, setActiveCalendarId, updateCalendar, shareCalendarWithUser, holidayCountries, holidayCountriesLoading, holidayCountriesError, holidayPref, setHolidayPref, holidaySyncing, holidayLastSync, onSyncHolidays, holidayFilter, setHolidayFilter, notificationPrefs, saveNotificationPrefs, notificationsSupported, fcmToken, requestNotificationPermission, pwaInstallPrompt, isPwaInstalled, installPwa, onRegisterFcm }) => {
             const [openSection, setOpenSection] = useState(null);
             const [editingShiftId, setEditingShiftId] = useState('');
             const [editForm, setEditForm] = useState({ name: '', start: '', end: '', color: '#000000' });
             const [aiDesignPrompt, setAiDesignPrompt] = useState('');
             const [manageCalendarId, setManageCalendarId] = useState('');
+            const [vapidKey, setVapidKey] = useState(() => (localStorage.getItem('timeroster_fcm_vapid_key') || '').trim());
+
             const [friendSelections, setFriendSelections] = useState([]);
             const [manageCalendarError, setManageCalendarError] = useState('');
             const [calendarNameDraft, setCalendarNameDraft] = useState('');
@@ -5323,7 +5427,57 @@
                                     >
                                         <Bell size={16} className="inline mr-2"/> {t('notificationEnableBtn')}
                                     </button>
-                                )}
+                                
+                                <div className={`p-3 rounded-lg ${themeClasses.listItem}`}>
+                                    <div className="text-xs font-bold mb-2">FCM VAPID Key</div>
+                                    <input
+                                        value={vapidKey}
+                                        onChange={(e) => setVapidKey(e.target.value)}
+                                        placeholder="VAPID Public Key (Firebase Console → Cloud Messaging → Web Push certificates)"
+                                        className={`w-full px-3 py-2 rounded-lg border text-xs outline-none ${themeClasses.input}`}
+                                    />
+                                    <div className="flex gap-2 mt-2">
+                                        <button
+                                            onClick={() => {
+                                                const v = (vapidKey || '').trim();
+                                                localStorage.setItem('timeroster_fcm_vapid_key', v);
+                                                alert('VAPID Key gespeichert ✓');
+                                            }}
+                                            className="flex-1 px-3 py-2 rounded-lg bg-white/10 text-white text-xs font-bold"
+                                        >
+                                            <Save size={14} className="inline mr-1"/> Speichern
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                const permissionOk = await requestNotificationPermission();
+                                                if (!permissionOk) return alert(t('notificationPermissionDenied'));
+                                                const v = (localStorage.getItem('timeroster_fcm_vapid_key') || '').trim();
+                                                if (!v) return alert('Bitte VAPID Public Key speichern.');
+                                                try {
+                                                    const ok = await onRegisterFcm?.();
+                                                    if (ok) alert('Push aktiviert ✓');
+                                                    else alert('Push konnte nicht aktiviert werden (Token).');
+                                                } catch (e) {
+                                                    console.error(e);
+                                                    alert('Push konnte nicht aktiviert werden.');
+                                                }
+                                            }}
+                                            className="flex-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold"
+                                        >
+                                            <Bell size={14} className="inline mr-1"/> Push aktivieren
+                                        </button>
+                                    </div>
+                                    {fcmToken && fcmToken !== 'local-notifications-active' && (
+                                        <div className="mt-2 text-[10px] opacity-60 break-all">
+                                            Token: {String(fcmToken).slice(0, 24)}…
+                                        </div>
+                                    )}
+                                    <div className="mt-2 text-[10px] opacity-60">
+                                        Push-Text ist absichtlich neutral: <b>„Kalender aktualisiert“</b>
+                                    </div>
+                                </div>
+
+)}
                                 {!notificationsSupported && (
                                     <div className="text-xs text-amber-400 bg-amber-400/10 p-3 rounded-lg">{t('notificationNotSupported')}</div>
                                 )}
@@ -5524,7 +5678,7 @@
                                     <button onClick={saveAsTemplate} className="flex-1 p-2 rounded-lg bg-purple-500/20 text-purple-400 font-bold text-sm hover:bg-purple-500/30">
                                         {t('save')}
                                     </button>
-                                    <button onClick={() => {setShowSaveTemplate(false); setTemplateName('');}} className="flex-1 p-2 rounded-lg bg-black/20 text-white font-bold text-sm">
+                                    <button onClick={() => {setShowSaveTemplate(false); setTemplateName('');}} className={`flex-1 p-2 rounded-lg border font-bold text-sm ${themeClasses.surfaceBtn}`}>
                                         {t('cancel')}
                                     </button>
                                 </div>
@@ -7669,7 +7823,146 @@
         };
 
         // --- MAIN APP ---
-        function TimeRosterApp() {
+        
+        // --- Messages View (Calendar-linked contact list) ---
+        const MessagesView = ({ user, themeClasses, calendars, activeCalendarId, friends, onOpenChat }) => {
+            const acceptedFriends = useMemo(() => (friends || []).filter(f => f.status === 'accepted'), [friends]);
+            const acceptedMap = useMemo(() => {
+                const m = new Map();
+                acceptedFriends.forEach(f => m.set(f.id, f));
+                return m;
+            }, [acceptedFriends]);
+
+            const activeCalendar = useMemo(() => {
+                if (!calendars || calendars.length === 0) return null;
+                if (!activeCalendarId || activeCalendarId === 'all') return calendars[0] || null;
+                return calendars.find(c => c.id === activeCalendarId) || calendars[0] || null;
+            }, [calendars, activeCalendarId]);
+
+            const memberIds = useMemo(() => {
+                const ids = (activeCalendar?.members || []).filter(Boolean);
+                // Unique
+                return Array.from(new Set(ids));
+            }, [activeCalendar]);
+
+            const memberItems = useMemo(() => {
+                if (!user) return [];
+                return memberIds
+                    .filter(uid => uid && uid !== user.uid)
+                    .map(uid => {
+                        const fr = acceptedMap.get(uid);
+                        const role = (activeCalendar?.roles && activeCalendar.roles[uid]) ? activeCalendar.roles[uid] : 'member';
+                        return {
+                            uid,
+                            name: fr?.name || (uid.slice(0, 6) + '…'),
+                            role,
+                            isFriend: !!fr
+                        };
+                    })
+                    .sort((a, b) => (a.isFriend === b.isFriend ? a.name.localeCompare(b.name) : (a.isFriend ? -1 : 1)));
+            }, [memberIds, acceptedMap, user, activeCalendar]);
+
+            const friendItems = useMemo(() => {
+                if (!user) return [];
+                return acceptedFriends
+                    .filter(f => f.id && f.id !== user.uid)
+                    .map(f => ({ uid: f.id, name: f.name || (f.id.slice(0,6)+'…') }))
+                    .sort((a,b) => a.name.localeCompare(b.name));
+            }, [acceptedFriends, user]);
+
+            if (!user) return null;
+
+            return (
+                <div className="h-full overflow-y-auto px-4 py-6 space-y-6">
+                    <div className={`p-5 rounded-2xl ${themeClasses.card}`}>
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                                <div className="text-sm font-bold">Message</div>
+                                <div className="text-xs opacity-70">
+                                    {activeCalendar ? `Kalender: ${activeCalendar.name || activeCalendar.id}` : 'Kein Kalender'}
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 opacity-80">
+                                <Users size={16}/>
+                                <span className="text-xs">{memberItems.length}</span>
+                            </div>
+                        </div>
+                        <div className="mt-4 text-xs opacity-70">
+                            Öffne direkt den Secret-Chat mit einem Kalender-Mitglied.
+                        </div>
+                    </div>
+
+                    <div className={`p-4 rounded-2xl ${themeClasses.card}`}>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Users size={16}/>
+                                <span className="font-bold text-sm">Kalender-Mitglieder</span>
+                            </div>
+                            <span className="text-xs opacity-70">{memberItems.length}</span>
+                        </div>
+
+                        {memberItems.length === 0 ? (
+                            <div className="mt-3 text-xs opacity-70">Keine weiteren Mitglieder gefunden.</div>
+                        ) : (
+                            <div className="mt-3 space-y-2">
+                                {memberItems.map(m => (
+                                    <div key={m.uid} className={`flex items-center justify-between p-3 rounded-xl ${themeClasses.listItem}`}>
+                                        <div className="min-w-0">
+                                            <div className="text-sm font-semibold truncate flex items-center gap-2">
+                                                <span className="truncate">{m.name}</span>
+                                                {m.isFriend && <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">Friend</span>}
+                                            </div>
+                                            <div className="text-[11px] opacity-60 truncate">{m.role}</div>
+                                        </div>
+                                        <button
+                                            onClick={() => onOpenChat(m.uid, m.name)}
+                                            className="px-3 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold active:scale-95"
+                                            title="Chat öffnen"
+                                        >
+                                            <MessageCircle size={14} className="inline mr-1"/> Chat
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className={`p-4 rounded-2xl ${themeClasses.card}`}>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <UserCheck size={16}/>
+                                <span className="font-bold text-sm">Freunde (akzeptiert)</span>
+                            </div>
+                            <span className="text-xs opacity-70">{friendItems.length}</span>
+                        </div>
+
+                        {friendItems.length === 0 ? (
+                            <div className="mt-3 text-xs opacity-70">Noch keine Freunde akzeptiert.</div>
+                        ) : (
+                            <div className="mt-3 space-y-2">
+                                {friendItems.map(f => (
+                                    <div key={f.uid} className={`flex items-center justify-between p-3 rounded-xl ${themeClasses.listItem}`}>
+                                        <div className="min-w-0">
+                                            <div className="text-sm font-semibold truncate">{f.name}</div>
+                                            <div className="text-[11px] opacity-60 truncate">Friend</div>
+                                        </div>
+                                        <button
+                                            onClick={() => onOpenChat(f.uid, f.name)}
+                                            className="px-3 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold active:scale-95"
+                                            title="Chat öffnen"
+                                        >
+                                            <MessageCircle size={14} className="inline mr-1"/> Chat
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+function TimeRosterApp() {
             const [user, setUser] = useState(null);
             const [authChecked, setAuthChecked] = useState(false);
             const [view, setView] = useState('auth');
@@ -7869,6 +8162,8 @@
 
 
             const [showSecret, setShowSecret] = useState(false);
+            const [secretInitialOpen, setSecretInitialOpen] = useState(null);
+
             const [secretPremiumUnlocked, setSecretPremiumUnlocked] = useState(() => safeStorageGet('timeroster_secret_premium_unlocked') === 'true');
             const [showPremiumGate, setShowPremiumGate] = useState(false);
             const [selectedDate, setSelectedDate] = useState(new Date());
@@ -8166,7 +8461,9 @@
                     const permission = await Notification.requestPermission();
                     if (permission === 'granted') {
                         setNotificationsSupported(true);
-                        setFcmToken('local-notifications-active');
+                        // local permission granted; push token will be registered separately
+                        setFcmToken(prev => prev);
+
                         
                         // Store flag in user profile
                         if (user) {
@@ -8186,6 +8483,39 @@
                     }
                 } catch (err) {
                     console.error('Permission request error:', err);
+                    return false;
+                }
+            };
+
+
+            const registerFcmToken = async () => {
+                try {
+                    if (!user) return false;
+                    if (!messaging) return false;
+                    if (!('serviceWorker' in navigator)) return false;
+                    if (!('Notification' in window)) return false;
+                    if (Notification.permission !== 'granted') return false;
+
+                    const vapidKey = getVapidKey();
+                    if (!vapidKey) {
+                        console.warn('No VAPID key set.');
+                        return false;
+                    }
+
+                    const registration = await navigator.serviceWorker.ready;
+                    const token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: registration });
+                    if (!token) return false;
+
+                    setFcmToken(token);
+                    await setDoc(
+                        doc(db, 'artifacts', appId, 'users', user.uid, 'fcm_tokens', token),
+                        { token, updatedAt: serverTimestamp(), ua: navigator.userAgent },
+                        { merge: true }
+                    );
+
+                    return true;
+                } catch (e) {
+                    console.error('registerFcmToken error', e);
                     return false;
                 }
             };
@@ -8219,7 +8549,9 @@
                         
                         // If permission already granted, activate
                         if (Notification.permission === 'granted') {
-                            setFcmToken('local-notifications-active');
+                            // local permission granted; push token will be registered separately
+                        setFcmToken(prev => prev);
+
                         }
                         
                         // Try to register service worker and get FCM token (optional, best-effort)
@@ -8234,8 +8566,47 @@
                                 if (registration) {
                                     console.log('Service Worker ready:', registration.scope);
                                 }
-                                // Background push (FCM) is intentionally disabled in GitHub Pages mode.
-                                // Local notifications (while the app is open) still work.
+                                // Register FCM token (requires VAPID key in Settings)
+                                if (messaging && registration && Notification.permission === 'granted') {
+                                    const vapidKey = getVapidKey();
+                                    if (vapidKey) {
+                                        try {
+                                            const token = await getToken(messaging, { vapidKey, serviceWorkerRegistration: registration });
+                                            if (token) {
+                                                setFcmToken(token);
+                                                // Persist token under the user so Cloud Functions can send pushes
+                                                await setDoc(
+                                                    doc(db, 'artifacts', appId, 'users', user.uid, 'fcm_tokens', token),
+                                                    { token, updatedAt: serverTimestamp(), ua: navigator.userAgent },
+                                                    { merge: true }
+                                                );
+                                            }
+                                        } catch (tokErr) {
+                                            console.warn('FCM token error:', tokErr?.message || tokErr);
+                                        }
+                                    } else {
+                                        console.warn('Missing VAPID key – push is not enabled yet.');
+                                    }
+
+                                    // Foreground listener (neutral)
+                                    try {
+                                        onMessage(messaging, async () => {
+                                            try {
+                                                const reg2 =
+                                                    (await navigator.serviceWorker.getRegistration('./')) ||
+                                                    (await navigator.serviceWorker.getRegistration()) ||
+                                                    null;
+                                                if (reg2 && Notification.permission === 'granted') {
+                                                    await reg2.showNotification('Kalender aktualisiert', {
+                                                        body: 'Es gibt neue Updates.',
+                                                        tag: 'timeroster-update',
+                                                        data: { url: APP_URL }
+                                                    });
+                                                }
+                                            } catch (e) {}
+                                        });
+                                    } catch (e) {}
+                                }
                             } catch (swErr) {
                                 console.warn('Service Worker check failed (non-critical, local notifications still work):', swErr.message);
                             }
@@ -8330,8 +8701,8 @@
                                             // Only notify if message is less than 30 seconds old
                                             if (now - msgTime < 30000) {
                                                 showLocalNotification(
-                                                    `${contactData.name || t('notificationNewMessage')}`,
-                                                    msgData.text ? (msgData.encrypted ? '🔒 ' + t('notificationNewMessage') : msgData.text.substring(0, 100)) : '📷 ' + t('photo'),
+                                                    'Kalender aktualisiert',
+                                                    'Es gibt neue Updates.',
                                                     nId
                                                 );
                                             }
@@ -8370,8 +8741,8 @@
                             shownReminders.add(reminderId);
                             const minutesUntil = Math.round((eventDate - now) / 60000);
                             showLocalNotification(
-                                t('notificationEventReminder'),
-                                `${ev.title || t('event')} ${t('notificationEventReminderBody')} (${minutesUntil} min)`,
+                                'Kalender aktualisiert',
+                                'Es gibt neue Updates.',
                                 reminderId
                             );
                         }
@@ -8384,13 +8755,13 @@
             }, [user, events, notificationPrefs.calendarEvents]);
 
             // --- NOTIFICATION: Write notification queue entry to Firestore for server-side delivery ---
-            const queuePushNotification = async (recipientUserId, title, body, data = {}) => {
+            const queuePushNotification = async (recipientUserId, _title, _body, data = {}) => {
                 if (!recipientUserId || recipientUserId === user?.uid) return;
                 try {
                     await addDoc(collection(db, 'artifacts', appId, 'notification_queue'), {
                         recipientUserId,
-                        title,
-                        body,
+                        title: 'Kalender aktualisiert',
+                        body: 'Es gibt neue Updates.',
                         data: { ...data, senderId: user?.uid || '' },
                         createdAt: serverTimestamp(),
                         status: 'pending'
@@ -8399,6 +8770,21 @@
                     console.warn('Failed to queue push notification:', err);
                 }
             };
+
+            // Notify all members of a calendar (neutral text) – excludes the sender by default
+            const queueCalendarUpdatedToMembers = async (calendarId, excludeUserId = user?.uid) => {
+                try {
+                    const cal = calendars.find(c => c.id === calendarId);
+                    const members = (cal?.members || []).filter(Boolean);
+                    members.filter(uid => uid && uid !== excludeUserId).forEach(uid => {
+                        queuePushNotification(uid, 'Kalender aktualisiert', 'Es gibt neue Updates.', { type: 'calendar_update', calendarId });
+                    });
+                } catch (e) {
+                    console.warn('queueCalendarUpdatedToMembers failed:', e?.message || e);
+                }
+            };
+
+
             
             // Track unread messages across all conversations
             useEffect(() => {
@@ -8933,8 +9319,8 @@
                         [...requestRecipients].forEach(recipientId => {
                             queuePushNotification(
                                 recipientId,
-                                t('notificationEventInvite'),
-                                `${myName} ${t('notificationEventInviteBody')}: ${clean.title || t('event')}`,
+                                'Kalender aktualisiert',
+                                'Es gibt neue Updates.',
                                 { type: 'event_invite', eventId }
                             );
                         });
@@ -8952,7 +9338,9 @@
                     alert(t('eventSaveError'));
                 }
 
-                setShowEventModal(false); 
+                                        // Notify calendar members about changes (neutral)
+                        await queueCalendarUpdatedToMembers(targetCalendarId);
+setShowEventModal(false); 
             };
             
             const updateEvent = async (d) => { 
@@ -8970,6 +9358,8 @@
                     }
                     if (targetCalendarId) {
                         await updateDoc(doc(db, 'artifacts', appId, 'calendars', targetCalendarId, 'events', id), { ...clean, calendarId: targetCalendarId });
+                        await queueCalendarUpdatedToMembers(targetCalendarId);
+
                     } else {
                         await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'events', id), clean);
                     }
@@ -8994,6 +9384,8 @@
                     }
                     if (targetCalendarId) {
                         await deleteDoc(doc(db, 'artifacts', appId, 'calendars', targetCalendarId, 'events', id));
+                        await queueCalendarUpdatedToMembers(targetCalendarId);
+
                     } else {
                         await deleteDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'events', id));
                     }
@@ -9853,6 +10245,11 @@
 
             // Handle secret messaging trigger with premium gate
             const handleSecretMessagesTrigger = (options = {}) => {
+                try {
+                    if (options && options.initialOpen) {
+                        setSecretInitialOpen(options.initialOpen);
+                    }
+                } catch (e) {}
                 if (secretPremiumUnlocked && !options.forceCodePrompt) {
                     setShowSecret(true);
                 } else {
@@ -9915,7 +10312,7 @@
             );
             const headerTitle = viewingUserId
                 ? t('viewing')
-                : (view === 'dashboard' ? dashboardLabelWithAlert : t(view));
+                : (view === 'dashboard' ? dashboardLabelWithAlert : (view === 'messages' ? 'Message' : t(view)));
             if (!authChecked) return <div className="flex items-center justify-center min-h-screen bg-slate-100 text-slate-900"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div></div>;
             if (view === 'auth') return <AuthView setView={setView} />;
 
@@ -9945,7 +10342,7 @@
 
                     {viewingUserId && !showSecret && <div className="bg-orange-500 text-white p-2 text-center text-xs font-bold flex justify-between items-center px-4"><span>{t('viewing')}: {viewingFriendName || 'Freund'}</span><button onClick={() => setViewingUserId(null)} className="underline">{t('backToMe')}</button></div>}
 
-                    {showSecret && <SecretMsnMessages user={user} onClose={() => setShowSecret(false)} queuePushNotification={queuePushNotification} />}
+                    {showSecret && <SecretMsnMessages user={user} initialOpen={secretInitialOpen} onClose={() => { setShowSecret(false); setSecretInitialOpen(null); }} queuePushNotification={queuePushNotification} notificationPrefs={notificationPrefs} saveNotificationPrefs={saveNotificationPrefs} />}
 
                     {!showSecret && (
                     <main className="pb-24 h-[calc(100vh-60px)] overflow-y-auto">
@@ -10383,7 +10780,7 @@
                                         {selectedTask?.id && (
                                             <button 
                                                 onClick={() => setSelectedTask(null)}
-                                                className="w-full p-2 rounded-lg bg-black/20 text-white font-bold text-sm"
+                                                className={`w-full p-2 rounded-lg border font-bold text-sm ${themeClasses.surfaceBtn}`}
                                             >
                                                 {t('cancel')}
                                             </button>
@@ -10594,7 +10991,20 @@
                         )}
 
                     {view === 'friends' && <FriendsView user={user} themeClasses={themeClasses} isComic={isComic} currentShareCode={shareCode} currentUserName={((displayName||'').trim()||getUserName(user))} onSelectFriend={(fid) => { setViewingUserId(fid); setView('calendar'); }}/>} 
-                    {view === 'settings' && <SettingsView theme={theme} setTheme={setTheme} lang={lang} setLang={(nextLang) => { setLang(nextLang); setCurrentLang(nextLang); setSettingsEditorLang(nextLang); }} fontScale={fontScale} setFontScale={setFontScale} currentFont={currentFont} setCurrentFont={setCurrentFont} shifts={shifts} saveShiftConfig={saveShiftConfig} deleteShift={deleteShift} signOut={signOut} auth={auth} themeClasses={themeClasses} user={user} shareCode={shareCode} displayName={displayName} setDisplayName={setDisplayName} onSaveDisplayName={saveDisplayName} onOpenVisualEditor={() => setShowVisualSettingsEditor(true)} onOpenFriends={() => setView('friends')} settingsEditorLang={settingsEditorLang} setSettingsEditorLang={setSettingsEditorLang} openCustomThemeWizard={() => setShowCustomThemeWizard(true)} onApplyAiDesign={(prompt) => applyAiDesign({ prompt, setTheme, setCustomTheme, setCurrentFont, setFontScale })} onOpenCalendarManager={() => setShowCalendarManager(true)} onOpenCalendarSettings={(calendar) => { setSelectedCalendarForSettings(calendar); setShowCalendarSettings(true); }} onExportCalendarICS={exportCalendarICS} calendars={calendars} friends={friends} activeCalendarId={activeCalendarId} setActiveCalendarId={setActiveCalendarId} updateCalendar={updateCalendar} shareCalendarWithUser={shareCalendarWithUser} holidayCountries={holidayCountries} holidayCountriesLoading={holidayCountriesLoading} holidayCountriesError={holidayCountriesError} holidayPref={holidayPref} setHolidayPref={setHolidayPref} holidaySyncing={holidaySyncing} holidayLastSync={holidayLastSync} onSyncHolidays={syncHolidays} holidayFilter={holidayFilter} setHolidayFilter={setHolidayFilter} notificationPrefs={notificationPrefs} saveNotificationPrefs={saveNotificationPrefs} notificationsSupported={notificationsSupported} fcmToken={fcmToken} requestNotificationPermission={requestNotificationPermission} pwaInstallPrompt={pwaInstallPrompt} isPwaInstalled={isPwaInstalled} installPwa={installPwa} />}
+                    {view === 'messages' && (
+                        <MessagesView
+                            user={user}
+                            themeClasses={themeClasses}
+                            calendars={calendars}
+                            activeCalendarId={activeCalendarId}
+                            friends={friends}
+                            onOpenChat={(friendId, friendName) => {
+                                handleSecretMessagesTrigger({ initialOpen: { friendId, friendName } });
+                            }}
+                        />
+                    )}
+
+                    {view === 'settings' && <SettingsView onRegisterFcm={async () => await registerFcmToken()} theme={theme} setTheme={setTheme} lang={lang} setLang={(nextLang) => { setLang(nextLang); setCurrentLang(nextLang); setSettingsEditorLang(nextLang); }} fontScale={fontScale} setFontScale={setFontScale} currentFont={currentFont} setCurrentFont={setCurrentFont} shifts={shifts} saveShiftConfig={saveShiftConfig} deleteShift={deleteShift} signOut={signOut} auth={auth} themeClasses={themeClasses} user={user} shareCode={shareCode} displayName={displayName} setDisplayName={setDisplayName} onSaveDisplayName={saveDisplayName} onOpenVisualEditor={() => setShowVisualSettingsEditor(true)} onOpenFriends={() => setView('friends')} settingsEditorLang={settingsEditorLang} setSettingsEditorLang={setSettingsEditorLang} openCustomThemeWizard={() => setShowCustomThemeWizard(true)} onApplyAiDesign={(prompt) => applyAiDesign({ prompt, setTheme, setCustomTheme, setCurrentFont, setFontScale })} onOpenCalendarManager={() => setShowCalendarManager(true)} onOpenCalendarSettings={(calendar) => { setSelectedCalendarForSettings(calendar); setShowCalendarSettings(true); }} onExportCalendarICS={exportCalendarICS} calendars={calendars} friends={friends} activeCalendarId={activeCalendarId} setActiveCalendarId={setActiveCalendarId} updateCalendar={updateCalendar} shareCalendarWithUser={shareCalendarWithUser} holidayCountries={holidayCountries} holidayCountriesLoading={holidayCountriesLoading} holidayCountriesError={holidayCountriesError} holidayPref={holidayPref} setHolidayPref={setHolidayPref} holidaySyncing={holidaySyncing} holidayLastSync={holidayLastSync} onSyncHolidays={syncHolidays} holidayFilter={holidayFilter} setHolidayFilter={setHolidayFilter} notificationPrefs={notificationPrefs} saveNotificationPrefs={saveNotificationPrefs} notificationsSupported={notificationsSupported} fcmToken={fcmToken} requestNotificationPermission={requestNotificationPermission} pwaInstallPrompt={pwaInstallPrompt} isPwaInstalled={isPwaInstalled} installPwa={installPwa} />}
                     </main>
                     )}
 
@@ -10618,7 +11028,7 @@
 
                     {!showSecret && (
                         <nav className={`fixed bottom-0 w-full pb-safe pt-2 px-6 flex justify-between items-center z-50 ${themeClasses.tabBar}`}>
-                            {[{id:'dashboard',icon:<Home/>,l:dashboardLabelWithAlert},{id:'calendar',icon:<Calendar/>,l:t('calendar')},{id:'tasks',icon:<ListChecks/>,l:t('taskManager')},{id:'settings',icon:<Settings/>,l:t('settings')}].map(i => (
+                            {[{id:'dashboard',icon:<Home/>,l:dashboardLabelWithAlert},{id:'calendar',icon:<Calendar/>,l:t('calendar')},{id:'tasks',icon:<ListChecks/>,l:t('taskManager')},{id:'messages',icon:<MessageCircle/>,l:'Message'},{id:'settings',icon:<Settings/>,l:t('settings')}].map(i => (
                                 <button key={i.id} onClick={() => setView(i.id)} className={`flex flex-col items-center p-2 rounded-lg ${view===i.id?(isComic?'text-[#8b5a2b] font-bold scale-110':'text-blue-400'):'opacity-60'}`}>{i.icon}<span className="text-[10px] mt-1">{i.l}</span></button>
                             ))}
                         </nav>
