@@ -3849,13 +3849,13 @@
                                         </button>
                                         <div className="flex-1">
                                             <div className={`text-xs font-medium mb-1.5 ${messagesDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{t('displayName')}</div>
-                                            <input value={profile.username} onChange={e => setProfile(p => ({ ...p, username: e.target.value }))} className={`border p-2.5 w-full text-sm rounded-xl ${messagesDarkMode ? 'bg-white/5 border-white/10 text-white focus:border-blue-500' : 'bg-white border-gray-200 text-black focus:border-blue-500'} outline-none transition`} placeholder={t('name')}/>
+                                            <input value={profile.username} onChange={e => setProfile(p => ({ ...p, username: e.target.value }))}} className={`border p-2.5 w-full text-sm rounded-xl ${messagesDarkMode ? 'bg-white/5 border-white/10 text-white focus:border-blue-500' : 'bg-white border-gray-200 text-black focus:border-blue-500'} outline-none transition`} placeholder={t('name')}/>
                                         </div>
                                     </div>
 
                                     <div>
                                         <div className={`text-xs font-medium mb-1.5 ${messagesDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{t('statusText')}</div>
-                                        <input value={profile.statusText} onChange={e => setProfile(p => ({ ...p, statusText: e.target.value }))} className={`border p-2.5 w-full text-sm rounded-xl ${messagesDarkMode ? 'bg-white/5 border-white/10 text-white focus:border-blue-500' : 'bg-white border-gray-200 text-black focus:border-blue-500'} outline-none transition`} placeholder={t('statusTextPlaceholder')}/>
+                                        <input value={profile.statusText} onChange={e => setProfile(p => ({ ...p, statusText: e.target.value }))} }))} className={`border p-2.5 w-full text-sm rounded-xl ${messagesDarkMode ? 'bg-white/5 border-white/10 text-white focus:border-blue-500' : 'bg-white border-gray-200 text-black focus:border-blue-500'} outline-none transition`} placeholder={t('statusTextPlaceholder')}/>
                                     </div>
 
                                     <div>
@@ -3902,7 +3902,7 @@
                                             <input
                                                 type="checkbox"
                                                 checked={(notificationPrefs?.chatMessages !== false)}
-                                                onChange={(e) => saveNotificationPrefs && saveNotificationPrefs({ ...(notificationPrefs || {}), chatMessages: e.target.checked 
+                                                onChange={(e) => saveNotificationPrefs && saveNotificationPrefs({ ...(notificationPrefs || {}), chatMessages: e.target.checked })}
                                                 className="w-4 h-4 rounded"
                                             />
                                             <span className="text-sm flex-1 font-medium">{t('notificationChatMessages')}</span>
@@ -4097,7 +4097,7 @@
                                     </div>
                                     <div className={`flex items-center gap-4 p-4 rounded-2xl ${messagesDarkMode ? 'bg-white/5 border border-white/5' : 'bg-gradient-to-b from-white to-slate-50 border border-slate-200'}`}>
                                         <button
-                                            onClick={() => setAvatarZoom({ src: avatarSrc(viewingFriendProfile.friendId, viewingFriendProfile.avatar), name: viewingFriendProfile.username })
+                                            onClick={() => setAvatarZoom({ src: avatarSrc(viewingFriendProfile.friendId, viewingFriendProfile.avatar), name: viewingFriendProfile.username })}
                                             className={`w-16 h-16 rounded-2xl overflow-hidden shadow-lg hover:scale-105 transition ${messagesDarkMode ? 'border border-white/10' : 'border border-gray-200'}`}
                                             title={t('clickToZoom')}
                                         >
@@ -5446,7 +5446,7 @@
                                     <input 
                                         type="checkbox" 
                                         checked={notificationPrefs?.chatMessages !== false} 
-                                        onChange={(e) => saveNotificationPrefs({...notificationPrefs, chatMessages: e.target.checked})
+                                        onChange={(e) => saveNotificationPrefs({...notificationPrefs, chatMessages: e.target.checked})}
                                         className="w-4 h-4 rounded"
                                     />
                                 </label>
@@ -5458,7 +5458,7 @@
                                     <input 
                                         type="checkbox" 
                                         checked={notificationPrefs?.calendarEvents !== false} 
-                                        onChange={(e) => saveNotificationPrefs({...notificationPrefs, calendarEvents: e.target.checked})
+                                        onChange={(e) => saveNotificationPrefs({...notificationPrefs, calendarEvents: e.target.checked})}
                                         className="w-4 h-4 rounded"
                                     />
                                 </label>
@@ -5470,7 +5470,7 @@
                                     <input 
                                         type="checkbox" 
                                         checked={notificationPrefs?.friendRequests !== false} 
-                                        onChange={(e) => saveNotificationPrefs({...notificationPrefs, friendRequests: e.target.checked})
+                                        onChange={(e) => saveNotificationPrefs({...notificationPrefs, friendRequests: e.target.checked})}
                                         className="w-4 h-4 rounded"
                                     />
                                 </label>
@@ -5672,7 +5672,7 @@
                                             <input 
                                                 type="number" 
                                                 value={formData.duration || 60} 
-                                                onChange={e => setFormData({...formData, duration: parseInt(e.target.value) || 60 })
+                                                onChange={e => setFormData({...formData, duration: parseInt(e.target.value) || 60})}
                                                 className={`w-full p-2 text-sm rounded-lg outline-none ${themeClasses.input}`}
                                                 min="15"
                                                 step="15"
@@ -5683,7 +5683,7 @@
                                             <input 
                                                 type="number" 
                                                 value={formData.travelTime || 0} 
-                                                onChange={e => setFormData({...formData, travelTime: parseInt(e.target.value) || 0 })
+                                                onChange={e => setFormData({...formData, travelTime: parseInt(e.target.value) || 0})}
                                                 className={`w-full p-2 text-sm rounded-lg outline-none ${themeClasses.input}`}
                                                 min="0"
                                                 step="5"
@@ -5694,7 +5694,7 @@
                                             <input 
                                                 type="number" 
                                                 value={formData.bufferTime || 0} 
-                                                onChange={e => setFormData({...formData, bufferTime: parseInt(e.target.value) || 0 })
+                                                onChange={e => setFormData({...formData, bufferTime: parseInt(e.target.value) || 0})}
                                                 className={`w-full p-2 text-sm rounded-lg outline-none ${themeClasses.input}`}
                                                 min="0"
                                                 step="5"
@@ -5887,7 +5887,7 @@
                                                         <div className="flex gap-2 mb-2">
                                                             <select 
                                                                 value={task.status}
-                                                                onChange={(e) => updateTask(task.id, { status: e.target.value })
+                                                                onChange={(e) => updateTask(task.id, { status: e.target.value })}
                                                                 className={`text-xs px-2 py-1 rounded ${statusColors[task.status] || statusColors.open} outline-none cursor-pointer`}
                                                             >
                                                                 <option value="open">{t('statusOpen')}</option>
@@ -5896,7 +5896,7 @@
                                                             </select>
                                                             <select 
                                                                 value={task.priority}
-                                                                onChange={(e) => updateTask(task.id, { priority: e.target.value })
+                                                                onChange={(e) => updateTask(task.id, { priority: e.target.value })}
                                                                 className="text-xs px-2 py-1 rounded bg-black/20 outline-none cursor-pointer"
                                                             >
                                                                 <option value="high">{t('priorityHigh')}</option>
@@ -6450,7 +6450,7 @@
                                         <input 
                                             type="number" 
                                             value={formData.duration || 60} 
-                                            onChange={e => setFormData({...formData, duration: parseInt(e.target.value) || 60 })
+                                            onChange={e => setFormData({...formData, duration: parseInt(e.target.value) || 60})}
                                             className={`w-full p-3 rounded-lg outline-none ${themeClasses.input}`}
                                             min="15"
                                             step="15"
@@ -6463,7 +6463,7 @@
                                         <input 
                                             type="number" 
                                             value={formData.travelTime || 0} 
-                                            onChange={e => setFormData({...formData, travelTime: parseInt(e.target.value) || 0 })
+                                            onChange={e => setFormData({...formData, travelTime: parseInt(e.target.value) || 0})}
                                             className={`w-full p-3 rounded-lg outline-none ${themeClasses.input}`}
                                             min="0"
                                             step="5"
@@ -6477,7 +6477,7 @@
                                         <input 
                                             type="number" 
                                             value={formData.bufferTime || 0} 
-                                            onChange={e => setFormData({...formData, bufferTime: parseInt(e.target.value) || 0 })
+                                            onChange={e => setFormData({...formData, bufferTime: parseInt(e.target.value) || 0})}
                                             className={`w-full p-3 rounded-lg outline-none ${themeClasses.input}`}
                                             min="0"
                                             step="5"
@@ -6497,7 +6497,7 @@
                                         <input 
                                             type="checkbox" 
                                             checked={formData.smartReminder || false}
-                                            onChange={e => setFormData({...formData, smartReminder: e.target.checked})
+                                            onChange={e => setFormData({...formData, smartReminder: e.target.checked})}
                                             className="w-4 h-4"
                                         />
                                         <span className="text-sm">{t('enableSmartReminder')}</span>
@@ -6510,7 +6510,7 @@
                                         <label className="text-xs opacity-70 block mb-1">{t('reminderType')}</label>
                                                 <select 
                                                     value={formData.reminderType || 'fixed'} 
-                                                    onChange={e => setFormData({...formData, reminderType: e.target.value })
+                                                    onChange={e => setFormData({...formData, reminderType: e.target.value })}
                                                     className={`w-full p-2 text-sm rounded-lg outline-none ${themeClasses.select}`}
                                                 >
                                             <option value="fixed">{t('fixedReminderOption')}</option>
@@ -6526,7 +6526,7 @@
                                             <label className="text-xs opacity-70 block mb-1">{t('minutesBefore')}</label>
                                                     <select 
                                                         value={formData.reminderMinutes || 15} 
-                                                        onChange={e => setFormData({...formData, reminderMinutes: parseInt(e.target.value) })
+                                                        onChange={e => setFormData({...formData, reminderMinutes: parseInt(e.target.value) })}
                                                         className={`w-full p-2 text-sm rounded-lg outline-none ${themeClasses.select}`}
                                                     >
                                                     <option value="5">5 {t('minutesLabel')}</option>
@@ -10364,7 +10364,7 @@ setShowEventModal(false);
                                                 Ort
                                             </button>
                                             <button
-                                                onClick={() => refreshWeather({ force: true })
+                                                onClick={() => refreshWeather({ force: true })}
                                                 className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold"
                                                 title={t('refreshWeatherTitle')}
                                             >
