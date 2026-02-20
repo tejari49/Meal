@@ -4097,7 +4097,7 @@
                                     </div>
                                     <div className={`flex items-center gap-4 p-4 rounded-2xl ${messagesDarkMode ? 'bg-white/5 border border-white/5' : 'bg-gradient-to-b from-white to-slate-50 border border-slate-200'}`}>
                                         <button
-                                            onClick={() => setAvatarZoom({ src: avatarSrc(viewingFriendProfile.friendId, viewingFriendProfile.avatar), name: viewingFriendProfile.username 
+                                            onClick={() => setAvatarZoom({ src: avatarSrc(viewingFriendProfile.friendId, viewingFriendProfile.avatar), name: (viewingFriendProfile.username || t('friend')) })}
                                             className={`w-16 h-16 rounded-2xl overflow-hidden shadow-lg hover:scale-105 transition ${messagesDarkMode ? 'border border-white/10' : 'border border-gray-200'}`}
                                             title={t('clickToZoom')}
                                         >
