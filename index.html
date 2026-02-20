@@ -4294,6 +4294,7 @@
                                                     </div>
                                                 </div>
                                             );
+                                        })}
                                         
                                         <div ref={scrollRef}/>
                                     </div>
@@ -4422,7 +4423,7 @@
                             prev.setDate(prev.getDate() - 1);
                             onDateClick(prev);
                         }} className="p-2"><ChevronLeft /></button>
-                        <h2 className="text-xl font-bold">{selectedDate.toLocaleDateString(getCurrentLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' </h2>
+                        <h2 className="text-xl font-bold">{selectedDate.toLocaleDateString(getCurrentLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</h2>
                         <button onClick={() => {
                             const next = new Date(selectedDate);
                             next.setDate(next.getDate() + 1);
@@ -4476,6 +4477,7 @@
                                                     </div>
                                                 </div>
                                             );
+                                        })}
                                         
                                         {hourEvents.length === 0 && dragOverHour === hour && (
                                             <div className="text-xs opacity-40 text-center py-2">
@@ -4485,7 +4487,8 @@
                                     </div>
                                 </div>
                             );
-                        
+                        })}
+
                     </div>
                 </div>
             );
@@ -4528,7 +4531,7 @@
             const weekEnd = new Date(weekDays[6]);
             const monthStr = weekStart.getMonth() === weekEnd.getMonth() 
                 ? weekStart.toLocaleDateString(getCurrentLocale(), { month: 'long', year: 'numeric' })
-                : `${weekStart.toLocaleDateString(getCurrentLocale(), { month: 'short'  - ${weekEnd.toLocaleDateString(getCurrentLocale(), { month: 'long', year: 'numeric' `;
+                : `${weekStart.toLocaleDateString(getCurrentLocale(), { month: 'short' })} - ${weekEnd.toLocaleDateString(getCurrentLocale(), { month: 'long', year: 'numeric' })}`;
 
             return (
                 <div className="pb-32 h-full flex flex-col">
@@ -4560,15 +4563,17 @@
                                 const dayCategories = getDayCategories(dateStr, events);
 
                                 return (
-                                    <div key={idx} 
+                                    <div
+                                        key={idx}
                                         className={getCalendarCellClasses({
                                             isToday,
                                             isTomorrow,
                                             isOvermorrow,
                                             dayCategories,
                                             baseClass: `p-2 rounded-lg cursor-pointer min-h-[100px] border ${isComic ? 'bg-[#f4e4bc] border-[#8b5a2b]' : 'bg-slate-800 border-white/10'}`
-                                        
-                                        onClick={() => onDateClick(day)}>
+                                        })}
+                                        onClick={() => onDateClick(day)}
+                                    >
                                         <div className={`text-sm font-bold mb-1 ${isToday ? 'text-blue-400' : ''}`}>
                                             {day.getDate()}
                                         </div>
@@ -4586,14 +4591,12 @@
                                                         <span className="truncate">{ev.title}</span>
                                                     </div>
                                                 );
-                                            
+                                            })}
                                             {dayEvents.length > 3 && (
                                                 <div className="text-[8px] opacity-60">+{dayEvents.length - 3}</div>
                                             )}
                                         </div>
                                     </div>
-                                );
-                            
                         </div>
                     </div>
                 </div>
@@ -4797,17 +4800,21 @@
                                         const dayForecast = getForecastForDate(forecastData, dateStr);
                                         const dayForecastMin = dayForecast?.min;
                                         return (
-                                            <div key={dateStr} data-date={dateStr}
-                                                onPointerDown={(event) => handleCellPointerDown(dateStr, date, event)} onPointerUp={handleCellPointerUp} onPointerLeave={handleCellPointerUp}
+                                            <div
+                                                key={dateStr}
+                                                data-date={dateStr}
+                                                onPointerDown={(event) => handleCellPointerDown(dateStr, date, event)}
+                                                onPointerUp={handleCellPointerUp}
+                                                onPointerLeave={handleCellPointerUp}
                                                 onPointerEnter={() => handlePaintEnter(dateStr)}
-                                                onClick={() => handleShiftCycle(dateStr, shiftId)}})
+                                                onClick={() => handleShiftCycle(dateStr, shiftId)}
                                                 className={getCalendarCellClasses({
                                                     isToday,
                                                     isTomorrow,
                                                     isOvermorrow,
                                                     dayCategories,
                                                     baseClass: `aspect-square relative rounded-lg flex flex-col items-center justify-start pt-1 transition-all active:scale-95 cursor-pointer border ${isToday ? 'border-blue-500 bg-blue-500/10' : themeClasses.calendarCell}`
-                                                
+                                                })}
                                                 style={{ backgroundColor: primaryShift ? primaryShift.color + '80' : undefined }}
                                             >
                                                 <span className={`text-sm ${isToday ? 'font-bold' : ''}`}>{date.getDate()}</span>
@@ -4828,10 +4835,10 @@
                                                 {primaryShift && primaryShift.id !== 'off' && shiftIndicators.length === 1 && <span className="text-[9px] mt-auto mb-1 opacity-80 leading-tight truncate px-1">{primaryShift.name.substring(0,2)}</span>}
                                             </div>
                                         );
-                                    
-                                </React.Fragment>
-                            );
-                        
+                                     )}
+                                 </React.Fragment>
+                             );
+                         })}
                     </div>
                 </div>
             );
