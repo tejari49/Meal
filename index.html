@@ -4295,7 +4295,6 @@
                                                 </div>
                                             );
                                         })}
-                                        
                                         <div ref={scrollRef}/>
                                     </div>
                                     {(editingMessage || replyingTo) && (
@@ -4478,7 +4477,6 @@
                                                 </div>
                                             );
                                         })}
-                                        
                                         {hourEvents.length === 0 && dragOverHour === hour && (
                                             <div className="text-xs opacity-40 text-center py-2">
                                                 Hier ablegen
@@ -4488,7 +4486,6 @@
                                 </div>
                             );
                         })}
-
                     </div>
                 </div>
             );
@@ -4563,8 +4560,7 @@
                                 const dayCategories = getDayCategories(dateStr, events);
 
                                 return (
-                                    <div
-                                        key={idx}
+                                    <div key={idx} 
                                         className={getCalendarCellClasses({
                                             isToday,
                                             isTomorrow,
@@ -4572,8 +4568,7 @@
                                             dayCategories,
                                             baseClass: `p-2 rounded-lg cursor-pointer min-h-[100px] border ${isComic ? 'bg-[#f4e4bc] border-[#8b5a2b]' : 'bg-slate-800 border-white/10'}`
                                         })}
-                                        onClick={() => onDateClick(day)}
-                                    >
+                                        onClick={() => onDateClick(day)}>
                                         <div className={`text-sm font-bold mb-1 ${isToday ? 'text-blue-400' : ''}`}>
                                             {day.getDate()}
                                         </div>
@@ -4597,6 +4592,8 @@
                                             )}
                                         </div>
                                     </div>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
@@ -4752,7 +4749,7 @@
                             onClick={handleTitleTap}
                         >
                             {viewingFriendName && <span className="text-sm opacity-70">Kalender von {viewingFriendName}</span>}
-                            <h2 className="text-xl font-bold">{currentDate.toLocaleDateString(getCurrentLocale(), { month: 'long', year: 'numeric' </h2>
+                            <h2 className="text-xl font-bold">{currentDate.toLocaleDateString(getCurrentLocale(), { month: 'long', year: 'numeric' })}</h2>
                             <span className="text-xs opacity-60 flex items-center gap-1"><BarChart2 size={10}/> {shifts.reduce((acc,s)=>acc+(monthStats[s.id]||0),0)} Schichten</span>
                         </div>
                         <button onClick={() => setCurrentDate(new Date(year, month + 1, 1))} className="p-2"><ChevronRight /></button>
@@ -4800,12 +4797,8 @@
                                         const dayForecast = getForecastForDate(forecastData, dateStr);
                                         const dayForecastMin = dayForecast?.min;
                                         return (
-                                            <div
-                                                key={dateStr}
-                                                data-date={dateStr}
-                                                onPointerDown={(event) => handleCellPointerDown(dateStr, date, event)}
-                                                onPointerUp={handleCellPointerUp}
-                                                onPointerLeave={handleCellPointerUp}
+                                            <div key={dateStr} data-date={dateStr}
+                                                onPointerDown={(event) => handleCellPointerDown(dateStr, date, event)} onPointerUp={handleCellPointerUp} onPointerLeave={handleCellPointerUp}
                                                 onPointerEnter={() => handlePaintEnter(dateStr)}
                                                 onClick={() => handleShiftCycle(dateStr, shiftId)}
                                                 className={getCalendarCellClasses({
@@ -4835,10 +4828,11 @@
                                                 {primaryShift && primaryShift.id !== 'off' && shiftIndicators.length === 1 && <span className="text-[9px] mt-auto mb-1 opacity-80 leading-tight truncate px-1">{primaryShift.name.substring(0,2)}</span>}
                                             </div>
                                         );
-                                     )}
-                                 </React.Fragment>
-                             );
-                         })}
+                                    })}
+                                    })}
+                                </React.Fragment>
+                            );
+                        })}
                     </div>
                 </div>
             );
@@ -5087,14 +5081,14 @@
                                     <div className="text-xs font-bold uppercase text-slate-400">{t('aiDesign')}</div>
                                     <textarea
                                         value={aiDesignPrompt}
-                                        onChange={(e) => setAiDesignPrompt(e.target.value)}})
+                                        onChange={(e) => setAiDesignPrompt(e.target.value)}
                                         placeholder={t('aiDesignPlaceholder')}
                                         rows="3"
                                         className="w-full p-2 rounded-lg text-xs bg-black/30 border border-white/10 outline-none text-slate-100"
                                     />
                                     <div className="text-[10px] text-slate-400">{t('aiDesignHint')}</div>
                                     <button
-                                        onClick={() => onApplyAiDesign(aiDesignPrompt)}})
+                                        onClick={() => onApplyAiDesign(aiDesignPrompt)}
                                         className={`w-full p-2 rounded-lg text-xs font-bold ${themeClasses.button}`}
                                     >
                                         {t('aiDesignApply')}
@@ -5102,7 +5096,7 @@
                                 </div>
 
                                 <button
-                                    onClick={onOpenVisualEditor}})
+                                    onClick={onOpenVisualEditor}
                                     className={`w-full p-3 rounded-lg border text-sm font-bold ${themeClasses.button}`}
                                 >
                                     🧩 {getSettingsText(settingsEditorLang, 'visualEditor')}
@@ -5133,7 +5127,7 @@
                                 </div>
                                 <div className="grid grid-cols-3 gap-2">
                                     <button
-                                        onClick={onOpenCalendarManager}})
+                                        onClick={onOpenCalendarManager}
                                         className={`p-3 rounded-lg flex flex-col items-center gap-1 text-[11px] font-bold ${themeClasses.listItem}`}
                                         title={t('calendarCreateButton')}
                                     >
@@ -5141,7 +5135,7 @@
                                         {t('calendarCreateButton')}
                                     </button>
                                     <button
-                                        onClick={() => selectedCalendar && onOpenCalendarSettings(selectedCalendar)}})
+                                        onClick={() => selectedCalendar && onOpenCalendarSettings(selectedCalendar)}
                                         disabled={!selectedCalendar}
                                         className={`p-3 rounded-lg flex flex-col items-center gap-1 text-[11px] font-bold ${selectedCalendar ? themeClasses.listItem : 'opacity-40 bg-black/10 cursor-not-allowed'}`}
                                         title={t('shareCalendar')}
@@ -5150,7 +5144,7 @@
                                         {t('shareCalendar')}
                                     </button>
                                     <button
-                                        onClick={onExportCalendarICS}})
+                                        onClick={onExportCalendarICS}
                                         disabled={!selectedCalendar}
                                         className={`p-3 rounded-lg flex flex-col items-center gap-1 text-[11px] font-bold ${selectedCalendar ? themeClasses.listItem : 'opacity-40 bg-black/10 cursor-not-allowed'}`}
                                         title={t('exportIcsTitle')}
@@ -5174,12 +5168,12 @@
                                             <div className="flex gap-2">
                                                 <input
                                                     value={calendarNameDraft}
-                                                    onChange={(e) => setCalendarNameDraft(e.target.value)}})
+                                                    onChange={(e) => setCalendarNameDraft(e.target.value)}
                                                     disabled={!isCalendarOwner}
                                                     className={`flex-1 p-2 rounded-lg ${themeClasses.input}`}
                                                 />
                                                 <button
-                                                    onClick={handleCalendarNameSave}})
+                                                    onClick={handleCalendarNameSave}
                                                     disabled={!isCalendarOwner || !calendarNameDraft.trim() || calendarNameDraft.trim() === selectedCalendar.name}
                                                     className={`px-3 rounded-lg text-sm font-bold ${isCalendarOwner ? themeClasses.button : 'opacity-40 bg-black/10 cursor-not-allowed'}`}
                                                 >
@@ -5227,7 +5221,7 @@
                                                         {availableFriends.map(friend => (
                                                             <div
                                                                 key={friend.id}
-                                                                onClick={() => toggleFriendSelection(friend.id)}})
+                                                                onClick={() => toggleFriendSelection(friend.id)}
                                                                 className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-all ${friendSelections.includes(friend.id) ? 'bg-blue-500/30 border border-blue-500' : 'bg-black/10 hover:bg-black/20'}`}
                                                             >
                                                                 <div className={`w-4 h-4 rounded border flex items-center justify-center ${friendSelections.includes(friend.id) ? 'bg-blue-500 border-blue-500' : 'border-gray-400'}`}>
@@ -5263,7 +5257,7 @@
                                     <label className="text-xs opacity-60 block mb-2 font-bold uppercase">{t('holidayCountryLabel')}</label>
                                     <input
                                         value={holidayFilter}
-                                        onChange={(e) => setHolidayFilter(e.target.value)}})
+                                        onChange={(e) => setHolidayFilter(e.target.value)}
                                         placeholder={t('holidayCountrySearch')}
                                         className={`w-full p-3 rounded-lg outline-none mb-2 ${themeClasses.input}`}
                                     />
@@ -5335,7 +5329,7 @@
                                     <span>{t('holidayLastSync')}: {lastSyncLabel}</span>
                                 </div>
                                 <button
-                                    onClick={onSyncHolidays}})
+                                    onClick={onSyncHolidays}
                                     disabled={holidaySyncing}
                                     className={`w-full p-3 rounded-lg font-bold ${holidaySyncing ? 'bg-slate-600 text-slate-200' : themeClasses.button}`}
                                 >
@@ -5391,7 +5385,7 @@
                                 <div className="text-xs opacity-60 mb-3">{t('pwaInstallHint')}</div>
                                 {pwaInstallPrompt ? (
                                     <button 
-                                        onClick={installPwa}})
+                                        onClick={installPwa}
                                         className="w-full p-3 bg-blue-600 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2"
                                     >
                                         <Download size={16}/> {t('pwaInstall')}
@@ -5455,7 +5449,7 @@
                                     <input 
                                         type="checkbox" 
                                         checked={notificationPrefs?.chatMessages !== false} 
-                                        onChange={(e) => saveNotificationPrefs({...notificationPrefs, chatMessages: e.target.checked)}
+                                        onChange={(e) => saveNotificationPrefs({...notificationPrefs, chatMessages: e.target.checked})}
                                         className="w-4 h-4 rounded"
                                     />
                                 </label>
@@ -5467,7 +5461,7 @@
                                     <input 
                                         type="checkbox" 
                                         checked={notificationPrefs?.calendarEvents !== false} 
-                                        onChange={(e) => saveNotificationPrefs({...notificationPrefs, calendarEvents: e.target.checked)}
+                                        onChange={(e) => saveNotificationPrefs({...notificationPrefs, calendarEvents: e.target.checked})}
                                         className="w-4 h-4 rounded"
                                     />
                                 </label>
@@ -5479,7 +5473,7 @@
                                     <input 
                                         type="checkbox" 
                                         checked={notificationPrefs?.friendRequests !== false} 
-                                        onChange={(e) => saveNotificationPrefs({...notificationPrefs, friendRequests: e.target.checked)}
+                                        onChange={(e) => saveNotificationPrefs({...notificationPrefs, friendRequests: e.target.checked})}
                                         className="w-4 h-4 rounded"
                                     />
                                 </label>
@@ -5636,7 +5630,7 @@
                                 <h3 className="text-sm font-bold mb-2">{t('templates')}</h3>
                                 <input 
                                     value={templateName}
-                                    onChange={e => setTemplateName(e.target.value)}})
+                                    onChange={e => setTemplateName(e.target.value)}
                                     placeholder={t('enterTemplateName')}
                                     className={`w-full p-2 rounded-lg outline-none mb-2 ${themeClasses.input}`}
                                 />
@@ -5655,7 +5649,7 @@
                             <div className="space-y-4">
                                 <div>
                                     <label className="text-xs opacity-70 block mb-1 font-bold">{t('category')}</label>
-                                    <div className="grid grid-cols-5 gap-2">{CATEGORIES.map(cat => <button key={cat.id} onClick={() => setFormData({...formData, category: cat.id className={`p-2 rounded-lg flex flex-col items-center gap-1 transition-all ${formData.category === cat.id ? 'bg-blue-600/30 border border-blue-500' : 'opacity-60'}`}><span className="text-xl">{cat.icon}</span><span className="text-[9px]">{t(cat.id)}</span></button>)}</div>
+                                    <div className="grid grid-cols-5 gap-2">{CATEGORIES.map(cat => <button key={cat.id} onClick={() => setFormData({...formData, category: cat.id})} className={`p-2 rounded-lg flex flex-col items-center gap-1 transition-all ${formData.category === cat.id ? 'bg-blue-600/30 border border-blue-500' : 'opacity-60'}`}><span className="text-xl">{cat.icon}</span><span className="text-[9px]">{t(cat.id)}</span></button>)}</div>
                                 </div>
                                 <input value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})}
                                 className={`w-full p-3 rounded-lg outline-none ${themeClasses.input}`} />
@@ -5802,7 +5796,7 @@
                                                             {isCurrentUser && !isOrganizer ? (
                                                                 <select 
                                                                     value={currentUserStatus}
-                                                                    onChange={(e) => handleResponseStatusChange(e.target.value)}})
+                                                                    onChange={(e) => handleResponseStatusChange(e.target.value)}
                                                                     className={`text-xs px-2 py-1 rounded ${statusColors[currentUserStatus] || statusColors.pending} outline-none cursor-pointer`}
                                                                 >
                                                                     <option value="accepted">{t('going')}</option>
@@ -5812,7 +5806,7 @@
                                                             ) : canOrganizerUpdateParticipant ? (
                                                                 <select 
                                                                     value={participant.status || 'pending'}
-                                                                    onChange={(e) => onUpdateParticipantStatus(event.id, participant.userId, e.target.value)}})
+                                                                    onChange={(e) => onUpdateParticipantStatus(event.id, participant.userId, e.target.value)}
                                                                     className={`text-xs px-2 py-1 rounded ${statusColors[participant.status] || statusColors.pending} outline-none cursor-pointer`}
                                                                 >
                                                                     <option value="accepted">{t('going')}</option>
@@ -5828,7 +5822,7 @@
                                                         </div>
                                                     </div>
                                                 );
-                                            
+                                            })}
                                         </div>
                                     </div>
                                 )}
@@ -5889,7 +5883,7 @@
                                                             </div>
                                                             <div className="flex items-center gap-2">
                                                                 <button 
-                                                                    onClick={() => deleteTask(task.id)}})
+                                                                    onClick={() => deleteTask(task.id)}
                                                                     className="text-red-400 hover:text-red-300 p-1"
                                                                 >
                                                                     <Trash2 size={14} />
@@ -5923,14 +5917,14 @@
                                                         <div className="mb-2">
                                                             {activeTaskTimers[task.id] ? (
                                                                 <button
-                                                                    onClick={() => stopTaskTimer(task.id)}})
+                                                                    onClick={() => stopTaskTimer(task.id)}
                                                                     className="w-full p-2 rounded-lg bg-red-500/20 text-red-400 font-bold flex items-center justify-center gap-2 hover:bg-red-500/30 text-xs"
                                                                 >
                                                                     <Pause size={14}/> {t('stopTimer')}
                                                                 </button>
                                                             ) : (
                                                                 <button
-                                                                    onClick={() => startTaskTimer(task.id)}})
+                                                                    onClick={() => startTaskTimer(task.id)}
                                                                     className="w-full p-2 rounded-lg bg-green-500/20 text-green-400 font-bold flex items-center justify-center gap-2 hover:bg-green-500/30 text-xs"
                                                                 >
                                                                     <Timer size={14}/> {t('startTimer')}
@@ -5951,12 +5945,12 @@
                                                                         <input 
                                                                             type="checkbox" 
                                                                             checked={item.completed}
-                                                                            onChange={() => toggleSubtask(task.id, item.id)}})
+                                                                            onChange={() => toggleSubtask(task.id, item.id)}
                                                                             className="cursor-pointer"
                                                                         />
                                                                         <span className={item.completed ? 'line-through opacity-50' : ''}>{item.text}</span>
                                                                         <button 
-                                                                            onClick={() => deleteSubtask(task.id, item.id)}})
+                                                                            onClick={() => deleteSubtask(task.id, item.id)}
                                                                             className="text-red-400 hover:text-red-300 ml-auto"
                                                                         >
                                                                             <X size={12} />
@@ -5988,7 +5982,7 @@
                                                                                 <span className="text-[10px] opacity-60">{dateStr}</span>
                                                                             </div>
                                                                             <button
-                                                                                onClick={() => deleteTaskTimeEntry(entry.id)}})
+                                                                                onClick={() => deleteTaskTimeEntry(entry.id)}
                                                                                 className="text-red-400 hover:text-red-300 p-1"
                                                                                 title={t('delete')}
                                                                             >
@@ -5996,7 +5990,7 @@
                                                                             </button>
                                                                         </div>
                                                                     );
-                                                                
+                                                                })}
                                                                 
                                                                 <div className="p-2 rounded-lg bg-blue-500/10 flex items-center justify-between">
                                                                     <span className="text-[10px] font-bold">{t('totalTime')}:</span>
@@ -6012,13 +6006,13 @@
                                                             <input 
                                                                 type="text"
                                                                 value={newSubtaskText[task.id] || ''}
-                                                                onChange={(e) => setNewSubtaskText({ ...newSubtaskText, [task.id]: e.target.value 
+                                                                onChange={(e) => setNewSubtaskText({ ...newSubtaskText, [task.id]: e.target.value })}
                                                                 onKeyPress={(e) => e.key === 'Enter' && addSubtask(task.id)}
                                                                 placeholder={t('addSubtask')}
                                                                 className={`flex-1 px-2 py-1 text-xs rounded outline-none ${themeClasses.input}`}
                                                             />
                                                             <button 
-                                                                onClick={() => addSubtask(task.id)}})
+                                                                onClick={() => addSubtask(task.id)}
                                                                 className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs"
                                                             >
                                                                 <Plus size={14} />
@@ -6026,6 +6020,7 @@
                                                         </div>
                                                     </div>
                                                 );
+                                                })}
                                             
                                         </div>
                                     )}
@@ -6035,7 +6030,7 @@
                                         <input 
                                             type="text"
                                             value={newTaskTitle}
-                                            onChange={(e) => setNewTaskTitle(e.target.value)}})
+                                            onChange={(e) => setNewTaskTitle(e.target.value)}
                                             placeholder={t('taskTitle')}
                                             className={`w-full px-2 py-2 text-sm rounded outline-none ${themeClasses.input}`}
                                         />
@@ -6043,21 +6038,21 @@
                                             <input 
                                                 type="date"
                                                 value={newTaskDueDate}
-                                                onChange={(e) => setNewTaskDueDate(e.target.value)}})
+                                                onChange={(e) => setNewTaskDueDate(e.target.value)}
                                                 placeholder={t('dueDate')}
                                                 className={`px-2 py-1 text-xs rounded outline-none ${themeClasses.input}`}
                                             />
                                             <input 
                                                 type="datetime-local"
                                                 value={newTaskReminder}
-                                                onChange={(e) => setNewTaskReminder(e.target.value)}})
+                                                onChange={(e) => setNewTaskReminder(e.target.value)}
                                                 placeholder={t('taskReminder')}
                                                 className={`px-2 py-1 text-xs rounded outline-none ${themeClasses.input}`}
                                             />
                                         </div>
                                         <select 
                                             value={newTaskResponsible}
-                                            onChange={(e) => setNewTaskResponsible(e.target.value)}})
+                                            onChange={(e) => setNewTaskResponsible(e.target.value)}
                                             className={`w-full px-2 py-1 text-xs rounded outline-none ${themeClasses.select}`}
                                         >
                                             <option value="">{t('unassigned')}</option>
@@ -6070,7 +6065,7 @@
                                         <div className="flex gap-2">
                                             <select 
                                                 value={newTaskStatus}
-                                                onChange={(e) => setNewTaskStatus(e.target.value)}})
+                                                onChange={(e) => setNewTaskStatus(e.target.value)}
                                                 className={`flex-1 px-2 py-1 text-xs rounded outline-none ${themeClasses.select}`}
                                             >
                                                 <option value="open">{t('statusOpen')}</option>
@@ -6079,7 +6074,7 @@
                                             </select>
                                             <select 
                                                 value={newTaskPriority}
-                                                onChange={(e) => setNewTaskPriority(e.target.value)}})
+                                                onChange={(e) => setNewTaskPriority(e.target.value)}
                                                 className={`flex-1 px-2 py-1 text-xs rounded outline-none ${themeClasses.select}`}
                                             >
                                                 <option value="high">{t('priorityHigh')}</option>
@@ -6088,7 +6083,7 @@
                                             </select>
                                         </div>
                                         <button 
-                                            onClick={addTask}})
+                                            onClick={addTask}
                                             className={`w-full py-2 rounded-lg font-bold text-sm ${themeClasses.button}`}
                                         >
                                             <Plus size={16} className="inline mr-1" /> {t('addTask')}
@@ -6170,7 +6165,7 @@
                                 <ChevronLeft size={20}/>
                             </button>
                             <div className="font-bold">
-                                {viewDate.toLocaleDateString(getCurrentLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+                                {viewDate.toLocaleDateString(getCurrentLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                             </div>
                             <button 
                                 onClick={() => {
@@ -6191,7 +6186,7 @@
                                 {friends && friends.map(friend => (
                                     <button
                                         key={friend.id}
-                                        onClick={() => toggleContact(friend.id)}})
+                                        onClick={() => toggleContact(friend.id)}
                                         className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
                                             selectedContacts.includes(friend.id)
                                                 ? 'bg-blue-500 text-white'
@@ -6221,6 +6216,7 @@
                                                         {contact?.name || contact?.shareCode || 'Unbekannt'}
                                                     </th>
                                                 );
+                                                })}
                                             
                                         </tr>
                                     </thead>
@@ -6243,9 +6239,11 @@
                                                                 </div>
                                                             </td>
                                                         );
+                                                        })}
                                                     
                                                 </tr>
                                             );
+                                            })}
                                         
                                     </tbody>
                                 </table>
@@ -6407,7 +6405,7 @@
                         <div className="space-y-4">
                             <div>
                                 <label className="text-xs opacity-70 block mb-1 font-bold">{t('category')}</label>
-                                <div className="grid grid-cols-5 gap-2">{CATEGORIES.map(cat => <button key={cat.id} onClick={() => setFormData({...formData, category: cat.id className={`p-2 rounded-lg flex flex-col items-center gap-1 transition-all ${formData.category === cat.id ? 'bg-blue-600/30 border border-blue-500' : 'opacity-60'}`}><span className="text-xl">{cat.icon}</span><span className="text-[9px]">{t(cat.id)}</span></button>)}</div>
+                                <div className="grid grid-cols-5 gap-2">{CATEGORIES.map(cat => <button key={cat.id} onClick={() => setFormData({...formData, category: cat.id})} className={`p-2 rounded-lg flex flex-col items-center gap-1 transition-all ${formData.category === cat.id ? 'bg-blue-600/30 border border-blue-500' : 'opacity-60'}`}><span className="text-xl">{cat.icon}</span><span className="text-[9px]">{t(cat.id)}</span></button>)}</div>
                             </div>
                             
                             {/* Templates Section */}
@@ -6420,14 +6418,14 @@
                                                 <div key={template.id} className="flex items-center justify-between gap-2">
                                                     <button
                                                         type="button"
-                                                        onClick={() => loadTemplate(template)}})
+                                                        onClick={() => loadTemplate(template)}
                                                         className="flex-1 text-left p-2 rounded bg-black/20 hover:bg-black/30 text-sm"
                                                     >
                                                         {template.name}
                                                     </button>
                                                     <button
                                                         type="button"
-                                                        onClick={() => deleteTemplate(template.id)}})
+                                                        onClick={() => deleteTemplate(template.id)}
                                                         className="p-2 text-red-400 hover:text-red-300"
                                                     >
                                                         <Trash2 size={14}/>
@@ -6586,7 +6584,7 @@
                                     <label className="text-xs opacity-70 font-bold uppercase">{t('eventTemplates')}</label>
                                     <button
                                         type="button"
-                                        onClick={() => setShowTemplateSection(!showTemplateSection)}})
+                                        onClick={() => setShowTemplateSection(!showTemplateSection)}
                                         className="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-400"
                                     >
                                         {showTemplateSection ? t('hide') : t('saveAsTemplate')}
@@ -6602,7 +6600,7 @@
                                                 <div key={tmpl.id} className={`flex items-center justify-between p-2 rounded-lg ${isComic ? 'bg-[#fdf6e3]' : 'bg-black/20'}`}>
                                                     <button
                                                         type="button"
-                                                        onClick={() => loadTemplate(tmpl)}})
+                                                        onClick={() => loadTemplate(tmpl)}
                                                         className="flex-1 text-left"
                                                     >
                                                         <div className="text-sm font-semibold">{tmpl.name}</div>
@@ -6610,7 +6608,7 @@
                                                     </button>
                                                     <button
                                                         type="button"
-                                                        onClick={() => deleteTemplate(tmpl.id)}})
+                                                        onClick={() => deleteTemplate(tmpl.id)}
                                                         className="text-red-400 p-1 ml-2"
                                                     >
                                                         <Trash2 size={14}/>
@@ -6627,13 +6625,13 @@
                                         <input
                                             type="text"
                                             value={templateName}
-                                            onChange={e => setTemplateName(e.target.value)}})
+                                            onChange={e => setTemplateName(e.target.value)}
                                             placeholder={t('templateNamePlaceholder')}
                                             className={`w-full p-2 text-sm rounded-lg outline-none ${themeClasses.input}`}
                                         />
                                         <button
                                             type="button"
-                                            onClick={saveAsTemplate}})
+                                            onClick={saveAsTemplate}
                                             className="w-full py-2 rounded-lg bg-blue-500 text-white font-bold text-sm"
                                         >
                                             {t('saveTemplate')}
@@ -6659,7 +6657,7 @@
                                                     <button
                                                         key={friend.id}
                                                         type="button"
-                                                        onClick={() => addFriendAsInvitee(friend.id, friend.name || friend.shareCode)}})
+                                                        onClick={() => addFriendAsInvitee(friend.id, friend.name || friend.shareCode)}
                                                         disabled={invitees.find(inv => inv.userId === friend.id)}
                                                         className={`text-xs px-2 py-1 rounded ${invitees.find(inv => inv.userId === friend.id) ? 'bg-blue-500/50 opacity-50 cursor-not-allowed' : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'}`}
                                                     >
@@ -6686,7 +6684,7 @@
                                                     </div>
                                                     <button
                                                         type="button"
-                                                        onClick={() => removeInvitee(idx)}})
+                                                        onClick={() => removeInvitee(idx)}
                                                         className="text-red-400 p-1"
                                                     >
                                                         <X size={14}/>
@@ -6786,13 +6784,13 @@
 
                         <div className="grid grid-cols-2 gap-2 mb-4">
                             <button
-                                onClick={() => setMode("geo")}})
+                                onClick={() => setMode("geo")}
                                 className={`p-3 rounded-xl font-bold border ${mode === "geo" ? "bg-blue-600/20 border-blue-500/30 text-blue-200" : "bg-white/5 border-slate-700 text-slate-200"}`}
                             >
                                 Standort automatisch
                             </button>
                             <button
-                                onClick={() => setMode("manual")}})
+                                onClick={() => setMode("manual")}
                                 className={`p-3 rounded-xl font-bold border ${mode === "manual" ? "bg-blue-600/20 border-blue-500/30 text-blue-200" : "bg-white/5 border-slate-700 text-slate-200"}`}
                             >
                                 Manuell
@@ -6819,7 +6817,7 @@
                                 <div className="flex gap-2">
                                     <input
                                         value={queryText}
-                                        onChange={(e) => setQueryText(e.target.value)}})
+                                        onChange={(e) => setQueryText(e.target.value)}
                                         placeholder={t('citySearchPlaceholder')}
                                         className="flex-1 p-3 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-blue-500"
                                     />
@@ -7060,7 +7058,7 @@
                                 <input 
                                     type="text" 
                                     value={name}
-                                    onChange={(e) => setName(e.target.value)}})
+                                    onChange={(e) => setName(e.target.value)}
                                     placeholder={t('calendarNamePlaceholder')}
                                     className={`w-full p-3 rounded-lg ${themeClasses.input}`}
                                 />
@@ -7070,7 +7068,7 @@
                                 <input 
                                     type="text" 
                                     value={description}
-                                    onChange={(e) => setDescription(e.target.value)}})
+                                    onChange={(e) => setDescription(e.target.value)}
                                     placeholder={t('calendarDescriptionPlaceholder')}
                                     className={`w-full p-3 rounded-lg ${themeClasses.input}`}
                                 />
@@ -7082,7 +7080,7 @@
                                     {['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'].map(c => (
                                         <button
                                             key={c}
-                                            onClick={() => setColor(c)}})
+                                            onClick={() => setColor(c)}
                                             className={`w-10 h-10 rounded-full border-2 ${color === c ? 'border-white scale-110' : 'border-transparent'}`}
                                             style={{ backgroundColor: c }}
                                         />
@@ -7098,7 +7096,7 @@
                                         {friends.map(friend => (
                                             <div 
                                                 key={friend.id}
-                                                onClick={() => toggleFriend(friend.id)}})
+                                                onClick={() => toggleFriend(friend.id)}
                                                 className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
                                                     selectedFriends.includes(friend.id) 
                                                         ? 'bg-blue-500/30 border-2 border-blue-500' 
@@ -7142,7 +7140,7 @@
                             )}
                             
                             <button 
-                                onClick={handleCreate}})
+                                onClick={handleCreate}
                                 className={`w-full py-3 rounded-lg font-bold ${themeClasses.button}`}
                             >
                                 <FolderPlus className="inline mr-2" size={18}/>
@@ -7226,7 +7224,7 @@
                                         {['light', 'dark', 'vibrant', 'custom'].map(opt => (
                                             <button
                                                 key={opt}
-                                                onClick={() => setTheme(opt)}})
+                                                onClick={() => setTheme(opt)}
                                                 className={`p-3 rounded-lg border font-bold ${theme === opt ? 'border-blue-500 bg-blue-500/10' : 'border-slate-700 text-slate-300'}`}
                                             >
                                                 {previewThemeLabel[opt] || opt}
@@ -7314,7 +7312,7 @@
                             <input
                                 type="color"
                                 value={customTheme[steps[step].key]}
-                                onChange={(e) => handleColorChange(steps[step].key, e.target.value)}})
+                                onChange={(e) => handleColorChange(steps[step].key, e.target.value)}
                                 className="w-full h-12 rounded-lg border border-slate-700 bg-black"
                             />
                             <div className="rounded-xl p-4 border border-slate-700" style={{ backgroundColor: customTheme.bg, color: customTheme.text }}>
@@ -7478,7 +7476,7 @@
                                         <label className="block text-sm font-bold">{t('shareWithFriends')}</label>
                                         {availableFriends.length > 0 && (
                                             <button
-                                                onClick={() => setShowFriendSelector(!showFriendSelector)}})
+                                                onClick={() => setShowFriendSelector(!showFriendSelector)}
                                                 className="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-400"
                                             >
                                                 {showFriendSelector ? t('cancel') : t('add')}
@@ -7509,7 +7507,7 @@
                                                 {availableFriends.map(friend => (
                                                     <div 
                                                         key={friend.id}
-                                                        onClick={() => toggleFriend(friend.id)}})
+                                                        onClick={() => toggleFriend(friend.id)}
                                                         className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-all ${
                                                             selectedNewFriends.includes(friend.id) 
                                                                 ? 'bg-blue-500/30 border border-blue-500' 
@@ -7534,7 +7532,7 @@
                                             </div>
                                             {selectedNewFriends.length > 0 && (
                                                 <button
-                                                    onClick={handleShareWithFriends}})
+                                                    onClick={handleShareWithFriends}
                                                     className="w-full py-2 rounded bg-blue-600 text-white text-sm font-bold mt-2"
                                                 >
                                                     {t('shareCalendar')} ({selectedNewFriends.length})
@@ -7558,7 +7556,7 @@
                                     <div className="text-xs opacity-60">{t('publicSharingHint')}</div>
                                 </div>
                                 <button 
-                                    onClick={() => makePublic(calendar.id, !calendar.isPublic)}})
+                                    onClick={() => makePublic(calendar.id, !calendar.isPublic)}
                                     className={`px-4 py-2 rounded-lg font-bold ${calendar.isPublic ? 'bg-green-600' : 'bg-gray-600'}`}
                                 >
                                     {calendar.isPublic ? t('toggleOn') : t('toggleOff')}
@@ -7577,7 +7575,7 @@
                                                 className={`flex-1 p-3 rounded-lg ${themeClasses.input}`}
                                             />
                                             <button 
-                                                onClick={() => copyToClipboard(publicLink)}})
+                                                onClick={() => copyToClipboard(publicLink)}
                                                 className={`px-4 py-3 rounded-lg ${themeClasses.button}`}
                                                 title={t('copyLinkTitle')}
                                             >
@@ -7600,7 +7598,7 @@
                                                 className={`flex-1 p-3 rounded-lg ${themeClasses.input}`}
                                             />
                                             <button 
-                                                onClick={() => copyToClipboard(subscriptionLink)}})
+                                                onClick={() => copyToClipboard(subscriptionLink)}
                                                 className={`px-4 py-3 rounded-lg ${themeClasses.button}`}
                                                 title={t('copyLinkTitle')}
                                             >
@@ -7750,6 +7748,7 @@
                                             </div>
                                         </div>
                                     );
+                                    })}
                                 
                             </div>
                         </div>
@@ -7783,6 +7782,7 @@
                                             </div>
                                         </div>
                                     );
+                                    })}
                                 
                             </div>
                         </div>
@@ -7891,7 +7891,7 @@
                                             <div className="text-[11px] opacity-60 truncate">{m.role}</div>
                                         </div>
                                         <button
-                                            onClick={() => onOpenChat(m.uid, m.name)}})
+                                            onClick={() => onOpenChat(m.uid, m.name)}
                                             className="px-3 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold active:scale-95"
                                             title="Chat öffnen"
                                         >
@@ -7923,7 +7923,7 @@
                                             <div className="text-[11px] opacity-60 truncate">Friend</div>
                                         </div>
                                         <button
-                                            onClick={() => onOpenChat(f.uid, f.name)}})
+                                            onClick={() => onOpenChat(f.uid, f.name)}
                                             className="px-3 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold active:scale-95"
                                             title="Chat öffnen"
                                         >
@@ -10376,14 +10376,14 @@ setShowEventModal(false);
                                         
                                         <div className="shrink-0 flex gap-2">
                                             <button
-                                                onClick={() => setShowWeatherSettings(true)}})
+                                                onClick={() => setShowWeatherSettings(true)}
                                                 className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold"
                                                 title={t('selectLocationTitle')}
                                             >
                                                 Ort
                                             </button>
                                             <button
-                                                onClick={() => refreshWeather({ force: true 
+                                                onClick={() => refreshWeather({ force: true })}
                                                 className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold"
                                                 title={t('refreshWeatherTitle')}
                                             >
@@ -10488,7 +10488,7 @@ setShowEventModal(false);
                                                 <div className="flex items-center gap-2">
                                                     <select 
                                                         value={activeCalendarId || ''}
-                                                        onChange={(e) => handleCalendarSelect(e.target.value)}})
+                                                        onChange={(e) => handleCalendarSelect(e.target.value)}
                                                         className={`px-3 py-1.5 rounded-lg text-xs font-bold ${themeClasses.input}`}
                                                     >
                                                         {calendarSelectorOptions.map(cal => (
@@ -10521,7 +10521,7 @@ setShowEventModal(false);
                                         <select
                                             id="calendar-event-filter"
                                             value={calendarEventListRange}
-                                            onChange={(e) => setCalendarEventListRange(e.target.value)}})
+                                            onChange={(e) => setCalendarEventListRange(e.target.value)}
                                             className={`px-2 py-1 rounded-lg text-xs font-bold ${themeClasses.select}`}
                                         >
                                             <option value="day">{t('rangeDay')}</option>
@@ -10542,7 +10542,7 @@ setShowEventModal(false);
                                             return (
                                                 <button
                                                     key={ev._key}
-                                                    onClick={() => setSelectedEvent(ev)}})
+                                                    onClick={() => setSelectedEvent(ev)}
                                                     className={`w-full text-left p-2 rounded-lg flex items-center gap-2 ${isComic ? 'bg-[#fdf6e3]' : themeClasses.listItem}`}
                                                 >
                                                     <span className="text-lg">{cat?.icon}</span>
@@ -10559,6 +10559,7 @@ setShowEventModal(false);
                                                     </div>
                                                 </button>
                                             );
+                                            })}
                                         
                                     </div>
                                 </div>
@@ -10574,7 +10575,7 @@ setShowEventModal(false);
                                                 return (
                                                     <button
                                                         key={ev._key}
-                                                        onClick={() => setSelectedEvent(ev)}})
+                                                        onClick={() => setSelectedEvent(ev)}
                                                         className={`w-full text-left p-3 rounded-lg flex items-center gap-3 ${isComic ? 'bg-[#fdf6e3]' : themeClasses.listItem}`}
                                                     >
                                                         <span className="text-xl">{cat?.icon}</span>
@@ -10591,6 +10592,7 @@ setShowEventModal(false);
                                                         </div>
                                                     </button>
                                                 );
+                                                })}
                                             
                                         </div>
                                     </details>
@@ -10652,7 +10654,7 @@ setShowEventModal(false);
                                         <input
                                             type="text"
                                             value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}})
+                                            onChange={(e) => setSearchQuery(e.target.value)}
                                             placeholder={t('searchPlaceholder')}
                                             className={`flex-1 p-3 rounded-lg outline-none ${themeClasses.input}`}
                                             autoFocus
@@ -10681,6 +10683,7 @@ setShowEventModal(false);
                                                 </div>
                                             </div>
                                         );
+                                        })}
                                     
                                 </div>
                             </div>
@@ -10693,7 +10696,7 @@ setShowEventModal(false);
                                         <ListChecks size={24}/> {t('taskManager')}
                                     </h2>
                                     <button 
-                                        onClick={() => setShowStatistics(true)}})
+                                        onClick={() => setShowStatistics(true)}
                                         className="p-2 rounded-lg bg-purple-500/20 text-purple-400"
                                         title={t('statistics')}
                                     >
@@ -10755,7 +10758,7 @@ setShowEventModal(false);
                                         </button>
                                         {selectedTask?.id && (
                                             <button 
-                                                onClick={() => setSelectedTask(null)}})
+                                                onClick={() => setSelectedTask(null)}
                                                 className={`w-full p-2 rounded-lg border font-bold text-sm ${themeClasses.surfaceBtn}`}
                                             >
                                                 {t('cancel')}
@@ -10793,7 +10796,7 @@ setShowEventModal(false);
                             <input 
                                 type="checkbox"
                                                         checked={task.completed || false}
-                                                        onChange={() => toggleTaskComplete(task.id, task.completed)}})
+                                                        onChange={() => toggleTaskComplete(task.id, task.completed)}
                                                         className="mt-1"
                                                     />
                             <div className="flex-1 min-w-0">
@@ -10820,14 +10823,14 @@ setShowEventModal(false);
                                 <div className="mt-2">
                                     {activeTaskTimers[task.id] ? (
                                         <button
-                                            onClick={() => stopTaskTimer(task.id)}})
+                                            onClick={() => stopTaskTimer(task.id)}
                                             className="w-full p-2 rounded-lg bg-red-500/20 text-red-400 font-bold flex items-center justify-center gap-2 hover:bg-red-500/30 text-xs"
                                         >
                                             <Pause size={14}/> {t('stopTimer')}
                                         </button>
                                     ) : (
                                         <button
-                                            onClick={() => startTaskTimer(task.id)}})
+                                            onClick={() => startTaskTimer(task.id)}
                                             className="w-full p-2 rounded-lg bg-green-500/20 text-green-400 font-bold flex items-center justify-center gap-2 hover:bg-green-500/30 text-xs"
                                         >
                                             <Timer size={14}/> {t('startTimer')}
@@ -10861,7 +10864,7 @@ setShowEventModal(false);
                                                         <span className="text-[10px] opacity-60">{dateStr}</span>
                                                     </div>
                                                     <button
-                                                        onClick={() => deleteTaskTimeEntry(entry.id)}})
+                                                        onClick={() => deleteTaskTimeEntry(entry.id)}
                                                         className="text-red-400 hover:text-red-300 p-1"
                                                         title={t('delete')}
                                                     >
@@ -10869,7 +10872,7 @@ setShowEventModal(false);
                                                     </button>
                                                 </div>
                                             );
-                                        
+                                        })}
                                         
                                         <div className="p-2 rounded-lg bg-blue-500/10 flex items-center justify-between">
                                             <span className="text-[10px] font-bold">{t('totalTime')}:</span>
@@ -10882,7 +10885,7 @@ setShowEventModal(false);
                             </div>
                             <div className="flex gap-1">
                                 <button 
-                                    onClick={() => setSelectedTask(task)}})
+                                    onClick={() => setSelectedTask(task)}
                                     className="p-1 text-blue-400 hover:text-blue-300"
                                                         >
                                                             <Pencil size={14}/>
@@ -10980,7 +10983,7 @@ setShowEventModal(false);
                         />
                     )}
 
-                    {view === 'settings' && <SettingsView onRegisterFcm={async () => await registerFcmToken()} theme={theme} setTheme={setTheme} lang={lang} setLang={(nextLang) => { setLang(nextLang); setCurrentLang(nextLang); setSettingsEditorLang(nextLang); }} fontScale={fontScale} setFontScale={setFontScale} currentFont={currentFont} setCurrentFont={setCurrentFont} shifts={shifts} saveShiftConfig={saveShiftConfig} deleteShift={deleteShift} signOut={signOut} auth={auth} themeClasses={themeClasses} user={user} shareCode={shareCode} displayName={displayName} setDisplayName={setDisplayName} onSaveDisplayName={saveDisplayName} onOpenVisualEditor={() => setShowVisualSettingsEditor(true)} onOpenFriends={() => setView('friends')} settingsEditorLang={settingsEditorLang} setSettingsEditorLang={setSettingsEditorLang} openCustomThemeWizard={() => setShowCustomThemeWizard(true)} onApplyAiDesign={(prompt) => applyAiDesign({ prompt, setTheme, setCustomTheme, setCurrentFont, setFontScale  onOpenCalendarManager={() => setShowCalendarManager(true)} onOpenCalendarSettings={(calendar) => { setSelectedCalendarForSettings(calendar); setShowCalendarSettings(true); }} onExportCalendarICS={exportCalendarICS} calendars={calendars} friends={friends} activeCalendarId={activeCalendarId} setActiveCalendarId={setActiveCalendarId} updateCalendar={updateCalendar} shareCalendarWithUser={shareCalendarWithUser} holidayCountries={holidayCountries} holidayCountriesLoading={holidayCountriesLoading} holidayCountriesError={holidayCountriesError} holidayPref={holidayPref} setHolidayPref={setHolidayPref} holidaySyncing={holidaySyncing} holidayLastSync={holidayLastSync} onSyncHolidays={syncHolidays} holidayFilter={holidayFilter} setHolidayFilter={setHolidayFilter} notificationPrefs={notificationPrefs} saveNotificationPrefs={saveNotificationPrefs} notificationsSupported={notificationsSupported} fcmToken={fcmToken} requestNotificationPermission={requestNotificationPermission} pwaInstallPrompt={pwaInstallPrompt} isPwaInstalled={isPwaInstalled} installPwa={installPwa} />}
+                    {view === 'settings' && <SettingsView onRegisterFcm={async () => await registerFcmToken()} theme={theme} setTheme={setTheme} lang={lang} setLang={(nextLang) => { setLang(nextLang); setCurrentLang(nextLang); setSettingsEditorLang(nextLang); }} fontScale={fontScale} setFontScale={setFontScale} currentFont={currentFont} setCurrentFont={setCurrentFont} shifts={shifts} saveShiftConfig={saveShiftConfig} deleteShift={deleteShift} signOut={signOut} auth={auth} themeClasses={themeClasses} user={user} shareCode={shareCode} displayName={displayName} setDisplayName={setDisplayName} onSaveDisplayName={saveDisplayName} onOpenVisualEditor={() => setShowVisualSettingsEditor(true)} onOpenFriends={() => setView('friends')} settingsEditorLang={settingsEditorLang} setSettingsEditorLang={setSettingsEditorLang} openCustomThemeWizard={() => setShowCustomThemeWizard(true)} onApplyAiDesign={(prompt) => applyAiDesign({ prompt, setTheme, setCustomTheme, setCurrentFont, setFontScale })} onOpenCalendarManager={() => setShowCalendarManager(true)} onOpenCalendarSettings={(calendar) => { setSelectedCalendarForSettings(calendar); setShowCalendarSettings(true); }} onExportCalendarICS={exportCalendarICS} calendars={calendars} friends={friends} activeCalendarId={activeCalendarId} setActiveCalendarId={setActiveCalendarId} updateCalendar={updateCalendar} shareCalendarWithUser={shareCalendarWithUser} holidayCountries={holidayCountries} holidayCountriesLoading={holidayCountriesLoading} holidayCountriesError={holidayCountriesError} holidayPref={holidayPref} setHolidayPref={setHolidayPref} holidaySyncing={holidaySyncing} holidayLastSync={holidayLastSync} onSyncHolidays={syncHolidays} holidayFilter={holidayFilter} setHolidayFilter={setHolidayFilter} notificationPrefs={notificationPrefs} saveNotificationPrefs={saveNotificationPrefs} notificationsSupported={notificationsSupported} fcmToken={fcmToken} requestNotificationPermission={requestNotificationPermission} pwaInstallPrompt={pwaInstallPrompt} isPwaInstalled={isPwaInstalled} installPwa={installPwa} />}
                     </main>
                     )}
 
