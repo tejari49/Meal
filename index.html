@@ -319,7 +319,40 @@
 
     <div id="root" class="h-full w-full overflow-y-auto"></div>
 
-    <script type="text/babel" >
+    
+    <script>
+      // Minimal CommonJS shim for Babel-standalone output (imports -> require()).
+      window.__cjsModules = window.__cjsModules || Object.create(null);
+      window.require = function (name) {
+        const mod = window.__cjsModules && window.__cjsModules[name];
+        if (!mod) throw new Error("Module not preloaded: " + name);
+        return mod;
+      };
+    </script>
+
+    <script type="module">
+      // Preload ESM dependencies and expose them to the CommonJS shim.
+      import * as ReactNS from 'https://esm.sh/react@18.2.0';
+      import * as ReactDOMClientNS from 'https://esm.sh/react-dom@18.2.0/client';
+      import * as LucideNS from 'https://esm.sh/lucide-react@0.294.0';
+
+      import * as FirebaseAppNS from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+      import * as FirebaseAnalyticsNS from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics.js';
+      import * as FirebaseAuthNS from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+      import * as FirebaseFirestoreNS from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+      import * as FirebaseMessagingNS from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging.js';
+
+      window.__cjsModules['react'] = ReactNS;
+      window.__cjsModules['react-dom/client'] = ReactDOMClientNS;
+      window.__cjsModules['lucide-react'] = LucideNS;
+
+      window.__cjsModules['firebase/app'] = FirebaseAppNS;
+      window.__cjsModules['firebase/analytics'] = FirebaseAnalyticsNS;
+      window.__cjsModules['firebase/auth'] = FirebaseAuthNS;
+      window.__cjsModules['firebase/firestore'] = FirebaseFirestoreNS;
+      window.__cjsModules['firebase/messaging'] = FirebaseMessagingNS;
+    </script>
+<script type="text/babel" >
 
 
 
