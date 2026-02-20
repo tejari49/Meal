@@ -367,8 +367,12 @@
             console.warn('FCM not available in this environment:', e?.message || e);
         }
         const APP_URL = "https://tejari49.github.io/Meal/";
-        const DEFAULT_VAPID_KEY = ""; // Admin config: set the Web Push certificate key (VAPID public key) once (per app/project) to enable push on this device.
-        const getVapidKey = () => (localStorage.getItem('timeroster_fcm_vapid_key') || DEFAULT_VAPID_KEY || '').trim();
+        const DEFAULT_VAPID_KEY = ""; // Set once per app/project (Firebase → Cloud Messaging → Web Push certificates)
+        const getVapidKey = () => {
+            const meta = document.querySelector('meta[name="fcm-vapid-key"]');
+            const fromMeta = (meta?.getAttribute("content") || "").trim();
+            return (fromMeta || DEFAULT_VAPID_KEY || "").trim();
+        };
 
 
         const appId = "timeroster-app";
@@ -2814,7 +2818,7 @@
         const INPUT_REFOCUS_DELAY = 50;
         const DEFAULT_MESSAGE_SETTINGS = { readOnce: false, expiry: '24h' };
         
-        const SecretMsnMessages = ({ user, onClose, queuePushNotification, initialOpen, notificationPrefs, saveNotificationPrefs }) => {
+        const SecretMsnMessages = ({ user, onClose, onLock, queuePushNotification, initialOpen, notificationPrefs, saveNotificationPrefs }) => {
             const [view, setView] = useState('list'); // list | add | message | profile | friendProfile | createGroup
             const [contacts, setContacts] = useState([]);
             const [groups, setGroups] = useState([]);
@@ -3811,6 +3815,9 @@
                                 <div className="flex items-center gap-3"><div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center"><MessageCircle size={14}/></div><span className="font-bold text-sm tracking-tight">{t('messenger')}</span></div>
                                 <div className="flex items-center gap-1">
                                     <button onClick={() => setView('profile')} title={t('profile')} className="cam-control-btn" style={{width:32,height:32,background:'rgba(255,255,255,0.06)'}}><User size={14}/></button>
+                                    {onLock && (
+                                        <button onClick={onLock} title="Sperren" className="cam-control-btn" style={{width:32,height:32,background:'rgba(255,255,255,0.06)'}}><Lock size={14}/></button>
+                                    )}
                                     <button onClick={onClose} className="cam-control-btn" style={{width:32,height:32,background:'rgba(255,255,255,0.06)'}}><X size={14}/></button>
                                 </div>
                             </div>
@@ -4935,9 +4942,7 @@
             const [editForm, setEditForm] = useState({ name: '', start: '', end: '', color: '#000000' });
             const [aiDesignPrompt, setAiDesignPrompt] = useState('');
             const [manageCalendarId, setManageCalendarId] = useState('');
-            const [vapidKey, setVapidKey] = useState(() => (localStorage.getItem('timeroster_fcm_vapid_key') || '').trim());
-
-            const [friendSelections, setFriendSelections] = useState([]);
+const [friendSelections, setFriendSelections] = useState([]);
             const [manageCalendarError, setManageCalendarError] = useState('');
             const [calendarNameDraft, setCalendarNameDraft] = useState('');
 
@@ -5429,54 +5434,8 @@
                                     </button>
                                 )}
                                 
-                                <div className={`p-3 rounded-lg ${themeClasses.listItem}`}>
-                                    <div className="text-xs font-bold mb-2">FCM VAPID Public Key (Admin)</div>
-                                    <input
-                                        value={vapidKey}
-                                        onChange={(e) => setVapidKey(e.target.value)}
-                                        placeholder="VAPID Public Key (Firebase Console → Cloud Messaging → Web Push certificates)"
-                                        className={`w-full px-3 py-2 rounded-lg border text-xs outline-none ${themeClasses.input}`}
-                                    />
-                                    <div className="flex gap-2 mt-2">
-                                        <button
-                                            onClick={() => {
-                                                const v = (vapidKey || '').trim();
-                                                localStorage.setItem('timeroster_fcm_vapid_key', v);
-                                                alert('VAPID Key gespeichert ✓');
-                                            }}
-                                            className="flex-1 px-3 py-2 rounded-lg bg-white/10 text-white text-xs font-bold"
-                                        >
-                                            <Save size={14} className="inline mr-1"/> Speichern
-                                        </button>
-                                        <button
-                                            onClick={async () => {
-                                                const permissionOk = await requestNotificationPermission();
-                                                if (!permissionOk) return alert(t('notificationPermissionDenied'));
-                                                const v = (localStorage.getItem('timeroster_fcm_vapid_key') || '').trim();
-                                                if (!v) return alert('Bitte VAPID Public Key speichern.');
-                                                try {
-                                                    const ok = await onRegisterFcm?.();
-                                                    if (ok) alert('Push aktiviert ✓');
-                                                    else alert('Push konnte nicht aktiviert werden (Token).');
-                                                } catch (e) {
-                                                    console.error(e);
-                                                    alert('Push konnte nicht aktiviert werden.');
-                                                }
-                                            }}
-                                            className="flex-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold"
-                                        >
-                                            <Bell size={14} className="inline mr-1"/> Push aktivieren
-                                        </button>
-                                    </div>
-                                    {fcmToken && fcmToken !== 'local-notifications-active' && (
-                                        <div className="mt-2 text-[10px] opacity-60 break-all">
-                                            Token: {String(fcmToken).slice(0, 24)}…
-                                        </div>
-                                    )}
-                                    <div className="mt-2 text-[10px] opacity-60">
-                                        Push-Text ist absichtlich neutral: <b>„Kalender aktualisiert“</b>
-                                    </div>
-                                </div>
+                                
+
 
 )}
                                 {!notificationsSupported && (
@@ -10313,7 +10272,7 @@ setShowEventModal(false);
             );
             const headerTitle = viewingUserId
                 ? t('viewing')
-                : (view === 'dashboard' ? dashboardLabelWithAlert : (view === 'messages' ? 'Message' : t(view)));
+                : (view === 'dashboard' ? dashboardLabelWithAlert : (view === 'messages' ? 'Chat' : t(view)));
             if (!authChecked) return <div className="flex items-center justify-center min-h-screen bg-slate-100 text-slate-900"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div></div>;
             if (view === 'auth') return <AuthView setView={setView} />;
 
@@ -10343,7 +10302,7 @@ setShowEventModal(false);
 
                     {viewingUserId && !showSecret && <div className="bg-orange-500 text-white p-2 text-center text-xs font-bold flex justify-between items-center px-4"><span>{t('viewing')}: {viewingFriendName || 'Freund'}</span><button onClick={() => setViewingUserId(null)} className="underline">{t('backToMe')}</button></div>}
 
-                    {showSecret && <SecretMsnMessages user={user} initialOpen={secretInitialOpen} onClose={() => { setShowSecret(false); setSecretInitialOpen(null); }} queuePushNotification={queuePushNotification} notificationPrefs={notificationPrefs} saveNotificationPrefs={saveNotificationPrefs} />}
+                    {showSecret && <SecretMsnMessages user={user} initialOpen={secretInitialOpen} onClose={() => { setShowSecret(false); setSecretInitialOpen(null); }} onLock={() => { setSecretPremiumUnlocked(false); safeStorageSet('timeroster_secret_premium_unlocked','false'); setShowSecret(false); setSecretInitialOpen(null); }} queuePushNotification={queuePushNotification} notificationPrefs={notificationPrefs} saveNotificationPrefs={saveNotificationPrefs} />}
 
                     {!showSecret && (
                     <main className="pb-24 h-[calc(100vh-60px)] overflow-y-auto">
@@ -11029,7 +10988,7 @@ setShowEventModal(false);
 
                     {!showSecret && (
                         <nav className={`fixed bottom-0 w-full pb-safe pt-2 px-6 flex justify-between items-center z-50 ${themeClasses.tabBar}`}>
-                            {[{id:'dashboard',icon:<Home/>,l:dashboardLabelWithAlert},{id:'calendar',icon:<Calendar/>,l:t('calendar')},{id:'tasks',icon:<ListChecks/>,l:t('taskManager')},{id:'messages',icon:<MessageCircle/>,l:'Message'},{id:'settings',icon:<Settings/>,l:t('settings')}].map(i => (
+                            {[{id:'dashboard',icon:<Home/>,l:dashboardLabelWithAlert},{id:'calendar',icon:<Calendar/>,l:t('calendar')},{id:'tasks',icon:<ListChecks/>,l:t('taskManager')},{id:'messages',icon:<MessageCircle/>,l:'Chat'},{id:'settings',icon:<Settings/>,l:t('settings')}].map(i => (
                                 <button key={i.id} onClick={() => setView(i.id)} className={`flex flex-col items-center p-2 rounded-lg ${view===i.id?(isComic?'text-[#8b5a2b] font-bold scale-110':'text-blue-400'):'opacity-60'}`}>{i.icon}<span className="text-[10px] mt-1">{i.l}</span></button>
                             ))}
                         </nav>
