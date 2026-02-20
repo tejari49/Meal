@@ -321,6 +321,8 @@
 
     <script type="text/babel" >
 
+
+
         import React, { useState, useEffect, useMemo, useRef } from 'react';
         import { createRoot } from 'react-dom/client';
         import { 
@@ -5842,6 +5844,7 @@
                                                         </div>
                                                     </div>
                                                 );
+                                            })}
                                             
                                         </div>
                                     </div>
@@ -6010,6 +6013,7 @@
                                                                             </button>
                                                                         </div>
                                                                     );
+                                                                })}
                                                                 
                                                                 
                                                                 <div className="p-2 rounded-lg bg-blue-500/10 flex items-center justify-between">
@@ -6040,6 +6044,7 @@
                                                         </div>
                                                     </div>
                                                 );
+                                            })}
                                             
                                         </div>
                                     )}
@@ -6184,7 +6189,7 @@
                                 <ChevronLeft size={20}/>
                             </button>
                             <div className="font-bold">
-                                {viewDate.toLocaleDateString(getCurrentLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+                                {viewDate.toLocaleDateString(getCurrentLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                             </div>
                             <button 
                                 onClick={() => {
@@ -6235,6 +6240,7 @@
                                                         {contact?.name || contact?.shareCode || 'Unbekannt'}
                                                     </th>
                                                 );
+                                            })}
                                             
                                         </tr>
                                     </thead>
@@ -6257,9 +6263,11 @@
                                                                 </div>
                                                             </td>
                                                         );
+                                                    })}
                                                     
                                                 </tr>
                                             );
+                                        })}
                                         
                                     </tbody>
                                 </table>
@@ -7786,6 +7794,7 @@
                                             </div>
                                         </div>
                                     );
+                                })}
                                 
                             </div>
                         </div>
@@ -7819,6 +7828,7 @@
                                             </div>
                                         </div>
                                     );
+                                })}
                                 
                             </div>
                         </div>
@@ -10595,6 +10605,7 @@ setShowEventModal(false);
                                                     </div>
                                                 </button>
                                             );
+                                        })}
                                         
                                     </div>
                                 </div>
@@ -10627,6 +10638,7 @@ setShowEventModal(false);
                                                         </div>
                                                     </button>
                                                 );
+                                            })}
                                             
                                         </div>
                                     </details>
@@ -10717,6 +10729,7 @@ setShowEventModal(false);
                                                 </div>
                                             </div>
                                         );
+                                    })}
                                     
                                 </div>
                             </div>
@@ -10905,6 +10918,7 @@ setShowEventModal(false);
                                                     </button>
                                                 </div>
                                             );
+                                        })}
                                         
                                         
                                         <div className="p-2 rounded-lg bg-blue-500/10 flex items-center justify-between">
