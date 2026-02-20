@@ -2,6 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <meta name="fcm-vapid-key" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TimeRoster</title>
     
@@ -24,7 +25,7 @@
         // Service Worker for offline + installability (works on GitHub Pages)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js?v=20260220', { scope: './' })
+                navigator.serviceWorker.register('./sw.js?v=20260220b', { scope: './' })
                     .catch(err => console.warn('Service Worker registration failed:', err));
             });
         }
@@ -367,8 +368,11 @@
             console.warn('FCM not available in this environment:', e?.message || e);
         }
         const APP_URL = "https://tejari49.github.io/Meal/";
-        const DEFAULT_VAPID_KEY = ""; // Admin config: set the Web Push certificate key (VAPID public key) once (per app/project) to enable push on this device.
-        const getVapidKey = () => (localStorage.getItem('timeroster_fcm_vapid_key') || DEFAULT_VAPID_KEY || '').trim();
+        const DEFAULT_VAPID_KEY = ""; // Set once (app/project-wide). Put the Firebase Web Push certificate (VAPID public key) into <meta name="fcm-vapid-key" content="..."/>.
+        const getVapidKey = () => {
+            const meta = document.querySelector('meta[name="fcm-vapid-key"]');
+            return ((meta && meta.getAttribute('content')) || DEFAULT_VAPID_KEY || '').trim();
+        };
 
 
         const appId = "timeroster-app";
@@ -798,7 +802,8 @@
 
         const QUOTE_TRANSLATIONS = {
             en: {
-            calendarChat: "Chat",
+                calendarChatTitle: "Calendar chat",
+                calendarChat: "Chat",
                 wisdom: [
                     { text: "Slow and steady still gets you there.", origin: "Proverb (Europe)" },
                     { text: "Patience is another form of strength.", origin: "Proverb (Asia)" },
@@ -889,7 +894,8 @@
                 ]
             },
             it: {
-            calendarChat: "Chat",
+                calendarChatTitle: "Chat calendario",
+                calendarChat: "Chat",
                 wisdom: [
                     { text: "Chi va piano arriva comunque.", origin: "Proverbio (Europa)" },
                     { text: "La pazienza è una forma di forza.", origin: "Proverbio (Asia)" },
@@ -1221,6 +1227,8 @@
 
         // --- TRANSLATIONS ---
         const BASE_TRANSLATIONS = {
+            calendarChatTitle: "Kalender-Chat",
+            calendarChat: "Chat",
             dashboard: "Übersicht", calendar: "Kalender", friends: "Freunde", settings: "Einstellungen",
             newEvent: "Ereignis", title: "Info", category: "Kategorie", save: "Speichern", cancel: "Abbrechen",
             delete: "Löschen", edit: "Bearbeiten", details: "Details",
@@ -2615,7 +2623,6 @@
 
         const SETTINGS_EDITOR_TEXT = {
             de: {
-            calendarChat: "Chat",
                 visualEditor: "Visual-Editor",
                 guidedSetup: "Geführte Einrichtung",
                 stepTheme: "Design wählen",
@@ -3713,8 +3720,6 @@
                                 </div>
                             </div>
                         </div>
-                    )}
-
                     {cameraOpen && (
                         <div className="fixed inset-0 z-[110] bg-black flex flex-col" onClick={closeCamera}>
                             <div className="w-full h-full flex flex-col" onClick={(e)=>e.stopPropagation()}>
@@ -3767,8 +3772,6 @@
                                                     onChange={handlePhoto}
                                                 />
                                             </label>
-                                        )}
-                                        
                                         {/* Close button */}
                                         <button onClick={closeCamera} className="cam-control-btn">
                                             <X size={20}/>
@@ -3778,8 +3781,6 @@
                                 </div>
                             </div>
                         </div>
-                    )}
-
                     {imageZoom && (
                         <div className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4" onClick={confirmImageDelete}>
                             <div className="max-w-4xl w-full photo-preview" onClick={(e)=>e.stopPropagation()}>
@@ -3789,12 +3790,9 @@
                                         <Eye size={12} className="text-amber-400"/>
                                         {t('tapToDeleteImage')}
                                     </div>
-                                )}
                                 <button onClick={confirmImageDelete} className="absolute top-4 right-4 cam-control-btn"><X size={18}/></button>
                             </div>
                         </div>
-                    )}
-
                     {pendingDeleteImage && (
                         <div className="fixed inset-0 z-[130] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
                             <div className="bg-slate-900/95 backdrop-blur-xl text-white rounded-2xl p-5 w-full max-w-sm shadow-2xl border border-white/10 photo-preview">
@@ -3806,14 +3804,13 @@
                                 </div>
                             </div>
                         </div>
-                    )}
-
                     <div className={`w-full h-screen ${messagesDarkMode ? 'bg-[#0a0a0a] border border-white/5' : 'msn-window'} rounded-t-2xl flex flex-col overflow-hidden relative`}>
                         {messagesDarkMode ? (
                             <div className="bg-[#0a0a0a] border-b border-white/5 text-white p-4 flex justify-between items-center">
                                 <div className="flex items-center gap-3"><div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center"><MessageCircle size={14}/></div><span className="font-bold text-sm tracking-tight">{t('messenger')}</span></div>
                                 <div className="flex items-center gap-1">
                                     <button onClick={() => setView('profile')} title={t('profile')} className="cam-control-btn" style={{width:32,height:32,background:'rgba(255,255,255,0.06)'}}><User size={14}/></button>
+                                    <button onClick={() => { try { window.__lockSecretPremium && window.__lockSecretPremium(); } catch(e) {} onClose && onClose(); }} title="Secret sperren" className="cam-control-btn" style={{width:32,height:32,background:'rgba(255,255,255,0.06)'}}><Lock size={14}/></button>
                                     <button onClick={onClose} className="cam-control-btn" style={{width:32,height:32,background:'rgba(255,255,255,0.06)'}}><X size={14}/></button>
                                 </div>
                             </div>
@@ -3834,8 +3831,6 @@
                                     <span className={`flex-1 text-right font-mono ${messagesDarkMode ? 'text-gray-500' : 'text-gray-400'} select-all text-[10px]`}>{myCode}</span>
                                 </div>
                             </>
-                        )}
-
                         <div className={`flex-1 ${messagesDarkMode ? 'bg-[#0a0a0a] text-white' : 'msn-surface'} p-4 overflow-y-auto relative`}>
                             {view === 'profile' && (
                                 <div className="p-3 space-y-4">
@@ -3920,8 +3915,6 @@
                                         </button>
                                     </div>
                                 </div>
-                            )}
-
                             {view === 'list' && (
                                 <>
                                     <div className={`flex items-center gap-3 mb-4 p-3.5 rounded-2xl shadow-sm transition ${messagesDarkMode ? 'bg-white/5 border border-white/5' : 'border border-slate-200/80 bg-white/80 backdrop-blur-sm'}`}>
@@ -3951,8 +3944,6 @@
                                                 </div>
                                             ))}
                                         </div>
-                                    )}
-
                                     <div className={`mb-3 flex gap-2 text-[10px] pb-3 ${messagesDarkMode ? 'border-b border-white/5' : 'border-b border-slate-200'}`}>
                                         <button onClick={() => handleSortChange('status')} className={`px-3 py-1.5 rounded-full text-[10px] font-semibold transition ${friendSortMode === 'status' ? (messagesDarkMode ? 'bg-blue-600 text-white' : 'bg-slate-900 text-white') : (messagesDarkMode ? 'bg-white/5 text-gray-400' : 'bg-slate-100 text-slate-600')}`}>Status</button>
                                         <button onClick={() => handleSortChange('alpha')} className={`px-3 py-1.5 rounded-full text-[10px] font-semibold transition ${friendSortMode === 'alpha' ? (messagesDarkMode ? 'bg-blue-600 text-white' : 'bg-slate-900 text-white') : (messagesDarkMode ? 'bg-white/5 text-gray-400' : 'bg-slate-100 text-slate-600')}`}>{t('sortAlpha')}</button>
@@ -4026,8 +4017,6 @@
                                         ))}
                                     </div>
                                 </>
-                            )}
-                            
                             {view === 'createGroup' && (
                                     <div className={`p-3 ${messagesDarkMode ? 'text-white' : 'text-slate-900'}`}>
                                     <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
@@ -4077,8 +4066,6 @@
                                         </button>
                                     </div>
                                 </div>
-                            )}
-
                             {view === 'add' && (
                                 <div className={`p-3 ${messagesDarkMode ? 'text-white' : 'text-slate-900'}`}>
                                     <h3 className="font-bold text-lg mb-3">{t('addFriendTitle')}</h3>
@@ -4088,8 +4075,6 @@
                                         <button onClick={sendRequest} className={`ml-auto px-5 py-2 text-sm font-semibold rounded-xl transition ${messagesDarkMode ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-900 text-white hover:bg-slate-800'}`}>{t('send')}</button>
                                     </div>
                                 </div>
-                            )}
-
                             {view === 'friendProfile' && viewingFriendProfile && (
                                     <div className={`p-3 space-y-4 ${messagesDarkMode ? 'text-white' : 'text-slate-900'}`}>
                                     <div className="flex items-center justify-between mb-2">
@@ -4119,13 +4104,11 @@
                                             <div className={`text-[10px] uppercase font-bold mb-1 ${messagesDarkMode ? 'text-blue-400/60' : 'text-blue-500/60'}`}>{t('status')}</div>
                                             <div className="text-sm">"{viewingFriendProfile.statusText}"</div>
                                         </div>
-                                    )}
                                     {viewingFriendProfile.bio && (
                                         <div className={`p-3 rounded-2xl ${messagesDarkMode ? 'bg-purple-500/10 border border-purple-500/20' : 'bg-purple-50 border border-purple-200'}`}>
                                             <div className={`text-[10px] uppercase font-bold mb-1 ${messagesDarkMode ? 'text-purple-400/60' : 'text-purple-500/60'}`}>{t('bio')}</div>
                                             <div className="text-sm whitespace-pre-wrap">{viewingFriendProfile.bio}</div>
                                         </div>
-                                    )}
                                     <div className={`p-4 rounded-2xl space-y-3 ${messagesDarkMode ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-emerald-50 border border-emerald-200'}`}>
                                         <div className="flex items-center gap-2">
                                             <Shield size={12} className={messagesDarkMode ? 'text-emerald-400' : 'text-green-600'}/>
@@ -4169,8 +4152,6 @@
                                         <MessageCircle size={16} /> {t('sendMessage')}
                                     </button>
                                 </div>
-                            )}
-
                             {view === 'message' && activeConversation && (
                                 <div className="flex flex-col h-full">
                                     <div className={`flex items-center gap-3 pb-3 mb-3 ${messagesDarkMode ? 'border-b border-white/5' : 'border-b border-slate-200'}`}>
@@ -4201,7 +4182,6 @@
                                             >
                                                 {t('loadMoreMessages')}
                                             </button>
-                                        )}
                                         {messages.map((m) => {
                                             const isOwn = m.from === user.uid;
                                             const isRead = m.readBy && activeConversation.isGroup 
@@ -4220,12 +4200,10 @@
                                                                     {m.readOnce && <Eye size={10} className="text-amber-400" title={t('readOnceLabel')}/>}
                                                                     {m.expiresAt && (
                                                                         <Clock size={10} className="text-blue-400" title={`${t('expiresAtLabel')} ${new Date(toMillis(m.expiresAt)).toLocaleString(getCurrentLocale())}`}/>
-                                                                    )}
                                                                     {m.ts && (
                                                                         <span className={`text-[10px] ${messagesDarkMode ? 'text-gray-600' : 'text-slate-400'}`}>
                                                                             {new Date(toMillis(m.ts)).toLocaleTimeString(getCurrentLocale(), { hour: '2-digit', minute: '2-digit' })}
                                                                         </span>
-                                                                    )}
                                                                 </div>
                                                                 <div className={`max-w-[75%] chat-message ${isOwn ? 'ml-auto' : ''} ${messagesDarkMode ? (isOwn ? 'chat-message-own-dark' : 'chat-message-other-dark') : (isOwn ? 'chat-message-own-light' : 'chat-message-other-light')}`}>
                                                                     {m.replyTo && (
@@ -4236,7 +4214,6 @@
                                                                         >
                                                                             {t('replyToLabel')} {m.replyTo.text}
                                                                         </button>
-                                                                    )}
                                                                     {isDeleted ? (
                                                                         <span className="text-xs opacity-60 italic">{t('deletedMessage')}</span>
                                                                     ) : m.img ? (
@@ -4261,15 +4238,12 @@
                                                                                 )
                                                                             ))}
                                                                         </span>
-                                                                    )}
                                                                     {m.edited && !isDeleted && (
                                                                         <span className={`text-[9px] ${isOwn ? 'text-blue-100' : 'text-slate-400'} ml-2`}>{t('editedLabel')}</span>
-                                                                    )}
                                                                 {isOwn && !isDeleted && (
                                                                     <span className={`text-[10px] ml-2 ${isRead ? 'text-blue-200' : 'text-white/40'}`}>
                                                                         {isRead ? '✓✓' : '✓'}
                                                                     </span>
-                                                                )}
                                                             </div>
                                                         </div>
                                                         {isOwn && !isDeleted && (
@@ -4281,19 +4255,16 @@
                                                                     <button onClick={() => startEditMsg(m)} className={`p-1 rounded-lg transition ${messagesDarkMode ? 'text-gray-500 hover:text-green-400 hover:bg-white/5' : 'text-gray-400 hover:text-green-600 hover:bg-green-50'}`} title={t('edit')}>
                                                                         <Edit3 size={12} />
                                                                     </button>
-                                                                )}
                                                                 <button onClick={() => deleteMsg(m.id)} className={`p-1 rounded-lg transition ${messagesDarkMode ? 'text-gray-500 hover:text-red-400 hover:bg-white/5' : 'text-gray-400 hover:text-red-600 hover:bg-red-50'}`} title={t('delete')}>
                                                                     <Trash2 size={12} />
                                                                 </button>
                                                             </div>
-                                                        )}
                                                         {!isOwn && !isDeleted && (
                                                             <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                                                             <button onClick={() => startReplyMsg(m)} className={`p-1 rounded-lg transition ${messagesDarkMode ? 'text-gray-500 hover:text-blue-400 hover:bg-white/5' : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'}`} title={t('replyAction')}>
                                                                 <ArrowLeft size={12} className="rotate-180" />
                                                             </button>
                                                             </div>
-                                                        )}
                                                     </div>
                                                 </div>
                                             );
@@ -4310,7 +4281,6 @@
                                                 <X size={14} />
                                             </button>
                                         </div>
-                                    )}
                                     <div className={`mt-3 pt-3 border-t flex gap-3 items-center p-3 rounded-2xl shadow-sm transition ${messagesDarkMode ? 'border-white/5 bg-white/5' : 'border-slate-200/50 bg-white/90 backdrop-blur-sm'}`}>
                                         <button onClick={openCamera} className={`p-2 rounded-xl transition ${messagesDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/10' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'}`} title={t('photoCapture')}><Camera size={18}/></button>
                                         <label className={`p-2 rounded-xl cursor-pointer transition ${messagesDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/10' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'}`} title={t('attachPhoto')}><Paperclip size={18}/><input ref={filePickerRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto}/></label>
@@ -4321,7 +4291,6 @@
                                         <button onClick={() => sendMsg()} className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition shadow-sm ${messagesDarkMode ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-500/20' : 'bg-slate-900 text-white hover:bg-slate-800 shadow-slate-900/20'}`}>{editingMessage ? t('save') : <Send size={16}/>}</button>
                                     </div>
                                 </div>
-                            )}
                         </div>
                         <div className={`py-1.5 text-[10px] text-center border-t ${messagesDarkMode ? 'bg-[#0a0a0a] text-gray-600 border-white/5' : 'bg-slate-50 text-gray-400 border-slate-200/50'}`}>TimeRoster Messenger © 2026</div>
                     </div>
@@ -4475,7 +4444,6 @@
                                                         </div>
                                                         {isFocusBlock && (
                                                             <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">Fokus</span>
-                                                        )}
                                                     </div>
                                                 </div>
                                             );
@@ -4484,7 +4452,6 @@
                                             <div className="text-xs opacity-40 text-center py-2">
                                                 Hier ablegen
                                             </div>
-                                        )}
                                     </div>
                                 </div>
                             );
@@ -4579,7 +4546,6 @@
                                             <div className="text-[10px] text-blue-400 leading-none">
                                                 {Math.round(dayForecastMin)}°
                                             </div>
-                                        )}
                                         <div className="space-y-1">
                                             {dayEvents.slice(0, 3).map((ev, evIdx) => {
                                                 const cat = CATEGORIES.find(c => c.id === ev.category);
@@ -4592,7 +4558,6 @@
                                             })}
                                             {dayEvents.length > 3 && (
                                                 <div className="text-[8px] opacity-60">+{dayEvents.length - 3}</div>
-                                            )}
                                         </div>
                                     </div>
                                 );
@@ -4766,10 +4731,7 @@
                                     <button onClick={() => setPaintShiftId('eraser')} className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all bg-slate-700/50 ${paintShiftId==='eraser' ? 'border-red-500 scale-110' : 'border-transparent opacity-50'}`}><Eraser size={14} className={paintShiftId==='eraser' ? 'text-red-400' : 'text-slate-400'}/></button>
                                     {shifts.map(s => <button key={s.id} onClick={() => setPaintShiftId(s.id)} className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${paintShiftId===s.id ? 'border-white scale-110 shadow-md' : 'border-transparent opacity-50'}`} style={{ backgroundColor: s.color }}>{paintShiftId === s.id && <CheckCircle size={14} className="text-white mix-blend-difference"/>}</button>)}
                                 </div>
-                            )}
                         </div>
-                    )}
-
                     <div className={`grid grid-cols-8 text-center py-2 text-xs opacity-70 font-bold ${themeClasses.calendarWeek}`}>
                         <div className="text-[10px] uppercase opacity-40">KW</div>
                         {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(d => <div key={d}>{d}</div>)}
@@ -4818,7 +4780,6 @@
                                                     <div className="text-[9px] text-blue-400 leading-none">
                                                         {Math.round(dayForecastMin)}°
                                                     </div>
-                                                )}
                                                 <div className="flex gap-0.5 mt-1 flex-wrap justify-center h-2 overflow-hidden">{dayEvents.slice(0,3).map((ev, i) => <div key={i} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: CATEGORIES.find(c => c.id === ev.category)?.color }}></div>)}</div>
                                                 {shiftIndicators.length > 1 && (
                                                     <div className="flex gap-0.5 mt-1 flex-wrap justify-center h-2 overflow-hidden">
@@ -4827,7 +4788,6 @@
                                                         ))}
                                                         {shiftIndicators.length > 4 && <span className="text-[7px] opacity-70">+{shiftIndicators.length - 4}</span>}
                                                     </div>
-                                                )}
                                                 {primaryShift && primaryShift.id !== 'off' && shiftIndicators.length === 1 && <span className="text-[9px] mt-auto mb-1 opacity-80 leading-tight truncate px-1">{primaryShift.name.substring(0,2)}</span>}
                                             </div>
                                         );
@@ -4938,7 +4898,7 @@
             const [editForm, setEditForm] = useState({ name: '', start: '', end: '', color: '#000000' });
             const [aiDesignPrompt, setAiDesignPrompt] = useState('');
             const [manageCalendarId, setManageCalendarId] = useState('');
-            const [vapidKey, setVapidKey] = useState(() => (localStorage.getItem('timeroster_fcm_vapid_key') || '').trim());
+            const [vapidKey, setVapidKey] = useState(() => (localStorage.getItem('timeroster_fcm_vapid_key_removed') || '').trim());
 
             const [friendSelections, setFriendSelections] = useState([]);
             const [manageCalendarError, setManageCalendarError] = useState('');
@@ -5057,7 +5017,6 @@
                                     <span className="flex items-center justify-center gap-2"><Users size={16}/> {t('manageFriends')}</span>
                                 </button>
                             </div>
-                        )}
                     </div>
                     <div className={`rounded-xl overflow-hidden ${themeClasses.card}`}>
                         <button onClick={() => toggle('appearance')} className="w-full p-4 flex justify-between items-center font-bold"><span className="flex items-center gap-2"><Layout size={18}/> {t('appearance')}</span>{openSection==='appearance'?<ChevronLeft className="-rotate-90"/>:<ChevronLeft className="rotate-0"/>}</button>
@@ -5077,8 +5036,6 @@
                                     <button onClick={openCustomThemeWizard} className="w-full p-3 rounded-lg border text-sm font-bold bg-emerald-500/10 text-emerald-400">
                                         {t('customizeTheme')}
                                     </button>
-                                )}
-
                                 <div className="rounded-xl border border-white/10 bg-black/20 p-3 space-y-2">
                                     <div className="text-xs font-bold uppercase text-slate-400">{t('aiDesign')}</div>
                                     <textarea
@@ -5104,7 +5061,6 @@
                                     🧩 {getSettingsText(settingsEditorLang, 'visualEditor')}
                                 </button>
                             </div>
-                        )}
                     </div>
                     <div className={`rounded-xl overflow-hidden ${themeClasses.card}`}>
                         <button onClick={() => toggle('calendarManagement')} className="w-full p-4 flex justify-between items-center font-bold"><span className="flex items-center gap-2"><Users size={18}/> {t('manageCalendars')}</span>{openSection==='calendarManagement'?<ChevronLeft className="-rotate-90"/>:<ChevronLeft className="rotate-0"/>}</button>
@@ -5184,17 +5140,14 @@
                                             </div>
                                             {!isCalendarOwner && (
                                                 <div className="text-xs opacity-60 mt-1">{t('onlyOwnerCanChangeSettings')}</div>
-                                            )}
                                         </div>
                                         {!isCalendarOwner && (
                                             <div className="text-xs opacity-60">{t('onlyOwnerCanManageMembers')}</div>
-                                        )}
                                         <div>
                                             <label className="text-xs opacity-60 block mb-2 font-bold uppercase">{t('calendarMembers')}</label>
                                             <div className="space-y-2">
                                                 {memberFriends.length === 0 && (
                                                     <div className="text-xs opacity-60">{t('calendarNoMembers')}</div>
-                                                )}
                                                 {memberFriends.map(friend => (
                                                     <div key={friend.id} className="flex items-center gap-2 p-2 rounded bg-black/10 text-sm">
                                                         <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white">
@@ -5205,12 +5158,10 @@
                                                             <button onClick={() => handleRemoveMember(friend.id)} className="text-xs px-2 py-1 rounded bg-red-500/20 text-red-400">
                                                                 {t('remove')}
                                                             </button>
-                                                        )}
                                                     </div>
                                                 ))}
                                                 {hasOnlyOwnerMember && (
                                                     <div className="text-xs opacity-60">{t('calendarOnlyOwner')}</div>
-                                                )}
                                             </div>
                                         </div>
                                         {isCalendarOwner && (
@@ -5237,18 +5188,13 @@
                                                         ))}
                                                         {manageCalendarError && (
                                                             <div className="text-xs text-red-400">{manageCalendarError}</div>
-                                                        )}
                                                         <button onClick={handleAddMembers} className="w-full py-2 rounded bg-blue-600 text-white text-sm font-bold">
                                                             {t('addMembers')}
                                                         </button>
                                                     </div>
-                                                )}
                                             </div>
-                                        )}
                                     </div>
-                                )}
                             </div>
-                        )}
                     </div>
                     <div className={`rounded-xl overflow-hidden ${themeClasses.card}`}>
                         <button onClick={() => toggle('holidaySettings')} className="w-full p-4 flex justify-between items-center font-bold"><span className="flex items-center gap-2"><Globe size={18}/> {t('holidaySettings')}</span>{openSection==='holidaySettings'?<ChevronLeft className="-rotate-90"/>:<ChevronLeft className="rotate-0"/>}</button>
@@ -5285,7 +5231,6 @@
                                     </select>
                                     {holidayCountriesError && (
                                         <div className="text-xs text-orange-400 mt-2">{holidayCountriesError}</div>
-                                    )}
                                 </div>
                                 <div>
                                     <label className="text-xs opacity-60 block mb-2 font-bold uppercase">{t('holidayRegionLabel')}</label>
@@ -5338,7 +5283,6 @@
                                     {holidaySyncing ? t('holidaySyncing') : t('holidaySyncButton')}
                                 </button>
                             </div>
-                        )}
                     </div>
                     <div className={`rounded-xl overflow-hidden ${themeClasses.card}`}>
                         <button onClick={() => toggle('language')} className="w-full p-4 flex justify-between items-center font-bold"><span className="flex items-center gap-2"><Globe size={18}/> {t('appLanguage')}</span>{openSection==='language'?<ChevronLeft className="-rotate-90"/>:<ChevronLeft className="rotate-0"/>}</button>
@@ -5352,7 +5296,6 @@
                                 </select>
                                 <div className="text-xs opacity-60">{t('appLanguageHint')}</div>
                             </div>
-                        )}
                     </div>
                     <div className={`rounded-xl overflow-hidden ${themeClasses.card}`}>
                         <button onClick={() => toggle('shifts')} className="w-full p-4 flex justify-between items-center font-bold"><span className="flex items-center gap-2"><Clock size={18}/> {t('manageShifts')}</span>{openSection==='shifts'?<ChevronLeft className="-rotate-90"/>:<ChevronLeft className="rotate-0"/>}</button>
@@ -5368,9 +5311,7 @@
                                         <div className="flex items-center gap-2"><input type="color" value={editForm.color} onChange={e => setEditForm({...editForm, color: e.target.value})} className="h-10 w-10 rounded border-none"/></div>
                                         <div className="flex gap-2 pt-2">{editingShiftId !== 'new' && <button onClick={() => { deleteShift(editingShiftId); setEditingShiftId(''); }} className="p-3 bg-red-500/20 text-red-500 rounded-lg"><Trash2 size={18}/></button>}<button onClick={async () => { const newShift = { ...editForm, id: editingShiftId === 'new' ? crypto.randomUUID() : editingShiftId }; await saveShiftConfig(newShift); setEditingShiftId(''); }} className={`flex-1 p-3 rounded-lg font-bold ${themeClasses.button}`}>{t('save')}</button></div>
                                     </div>
-                                )}
                             </div>
-                        )}
                     </div>
                     {/* PWA Install */}
                     {(!isPwaInstalled || pwaInstallPrompt) && (
@@ -5392,10 +5333,8 @@
                                     <div className="text-xs opacity-50 bg-white/5 p-3 rounded-lg">
                                         {/iPhone|iPad|iPod/.test(navigator.userAgent) ? t('pwaInstallIosHint') : t('pwaInstallHint')}
                                     </div>
-                                )}
                             </div>
                         </div>
-                    )}
                     {isPwaInstalled && (
                         <div className={`rounded-xl overflow-hidden ${themeClasses.card}`}>
                             <div className="p-4 flex items-center gap-3">
@@ -5403,8 +5342,6 @@
                                 <span className="text-sm font-bold text-green-400">{t('pwaInstalled')}</span>
                             </div>
                         </div>
-                    )}
-
                     {/* Notification Settings */}
                     <div className={`rounded-xl overflow-hidden ${themeClasses.card}`}>
                         <button onClick={() => toggle('notifications')} className={`w-full p-4 flex items-center justify-between ${themeClasses.listItem}`}>
@@ -5414,7 +5351,6 @@
                                     <span className="text-xs text-green-400 flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-green-500"></div> {t('notificationEnabled')}</span>
                                 ) : (
                                     <span className="text-xs text-gray-500">{t('notificationDisabled')}</span>
-                                )}
                                 <ChevronRight size={16} className={`transition-transform ${openSection === 'notifications' ? 'rotate-90' : ''}`}/>
                             </div>
                         </button>
@@ -5430,15 +5366,53 @@
                                     >
                                         <Bell size={16} className="inline mr-2"/> {t('notificationEnableBtn')}
                                     </button>
-                                )}
-                                
-                                
-
-
-)}
+<input
+                                        value={vapidKey}
+                                        onChange={(e) => setVapidKey(e.target.value)}
+                                        placeholder="VAPID Public Key (Firebase Console → Cloud Messaging → Web Push certificates)"
+                                        className={`w-full px-3 py-2 rounded-lg border text-xs outline-none ${themeClasses.input}`}
+                                    />
+                                    <div className="flex gap-2 mt-2">
+                                        <button
+                                            onClick={() => {
+                                                const v = (vapidKey || '').trim();
+                                                localStorage.setItem('timeroster_fcm_vapid_key_removed', v);
+                                                alert('VAPID Key gespeichert ✓');
+                                            }}
+                                            className="flex-1 px-3 py-2 rounded-lg bg-white/10 text-white text-xs font-bold"
+                                        >
+                                            <Save size={14} className="inline mr-1"/> Speichern
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                const permissionOk = await requestNotificationPermission();
+                                                if (!permissionOk) return alert(t('notificationPermissionDenied'));
+                                                const v = (localStorage.getItem('timeroster_fcm_vapid_key_removed') || '').trim();
+                                                if (!v) return alert('Bitte VAPID Public Key speichern.');
+                                                try {
+                                                    const ok = await onRegisterFcm?.();
+                                                    if (ok) alert('Push aktiviert ✓');
+                                                    else alert('Push konnte nicht aktiviert werden (Token).');
+                                                } catch (e) {
+                                                    console.error(e);
+                                                    alert('Push konnte nicht aktiviert werden.');
+                                                }
+                                            }}
+                                            className="flex-1 px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold"
+                                        >
+                                            <Bell size={14} className="inline mr-1"/> Push aktivieren
+                                        </button>
+                                    </div>
+                                    {fcmToken && fcmToken !== 'local-notifications-active' && (
+                                        <div className="mt-2 text-[10px] opacity-60 break-all">
+                                            Token: {String(fcmToken).slice(0, 24)}…
+                                        </div>
+                                    <div className="mt-2 text-[10px] opacity-60">
+                                        Push-Text ist absichtlich neutral: <b>„Kalender aktualisiert“</b>
+                                    </div>
+                                </div>
                                 {!notificationsSupported && (
                                     <div className="text-xs text-amber-400 bg-amber-400/10 p-3 rounded-lg">{t('notificationNotSupported')}</div>
-                                )}
                                 <label className={`flex items-center justify-between p-3 rounded-lg cursor-pointer ${themeClasses.listItem}`}>
                                     <div className="flex items-center gap-2">
                                         <MessageCircle size={14}/>
@@ -5477,9 +5451,7 @@
                                 </label>
                                 {fcmToken && (
                                     <div className="text-[10px] text-gray-500 mt-2 break-all">Token: {fcmToken.substring(0, 20)}...</div>
-                                )}
                             </div>
-                        )}
                     </div>
 
                     <div className={`rounded-xl overflow-hidden ${themeClasses.card}`}><button onClick={() => signOut(auth)} className="w-full p-4 flex items-center justify-center gap-2 text-red-400 font-bold"><LogOut size={18}/> Logout</button></div>
@@ -5641,8 +5613,6 @@
                                     </button>
                                 </div>
                             </div>
-                        )}
-                        
                         {isEditing ? (
                             <div className="space-y-4">
                                 <div>
@@ -5718,8 +5688,6 @@
                                     <div className="flex items-center gap-2 opacity-70">
                                         <Repeat size={16}/> {t('repeat')}: {t(event.repeat === 'daily' ? 'repeatDaily' : event.repeat === 'weekly' ? 'repeatWeekly' : event.repeat === 'monthly' ? 'repeatMonthly' : 'repeatYearly')}
                                     </div>
-                                )}
-
                                 {event.location && <div className="flex items-center gap-2 opacity-70"><MapPin size={16}/> {event.location}</div>}
                                 
                                 {/* Time Planning Info */}
@@ -5732,8 +5700,6 @@
                                             {event.bufferTime > 0 && <div>⏸️ {t('bufferTimeLabel')}: {event.bufferTime} {t('minutesLabel')}</div>}
                                         </div>
                                     </div>
-                                )}
-                                
                                 {/* Smart Reminder Info */}
                                 {event.smartReminder && (
                                     <div className="mt-3 p-3 rounded-lg bg-purple-500/10">
@@ -5745,8 +5711,6 @@
                                             {event.reminderType === 'pattern' && t('patternReminderOption')}
                                         </div>
                                     </div>
-                                )}
-                                
                                 {/* Invitees Section */}
                                 {event.participants && event.participants.length > 0 && (
                                     <div className="mt-4 pt-4 border-t border-slate-700/50">
@@ -5782,7 +5746,6 @@
                                                                 </span>
                                                                 {participant.email && participant.userName && (
                                                                     <span className="text-xs opacity-60">{participant.email}</span>
-                                                                )}
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center gap-2">
@@ -5811,15 +5774,12 @@
                                                                 <span className={`text-xs px-2 py-1 rounded ${statusColors[participant.status] || statusColors.pending}`}>
                                                                     {statusLabels[participant.status] || statusLabels.pending}
                                                                 </span>
-                                                            )}
                                                         </div>
                                                     </div>
                                                 );
                                             })}
                                         </div>
                                     </div>
-                                )}
-                                
                                 {/* Tasks Section */}
                                 <div className="mt-4 pt-4 border-t border-slate-700/50">
                                     <h3 className="text-sm font-bold opacity-70 mb-3 uppercase">{t('tasks')}</h3>
@@ -5854,25 +5814,21 @@
                                                                         <Clock size={12} className="inline mr-1" />
                                                                         {task.dueDate}
                                                                     </div>
-                                                                )}
                                                                 {task.responsible && (
                                                                     <div className="text-xs opacity-60 mt-1">
                                                                         <User size={12} className="inline mr-1" />
                                                                         {task.responsible}
                                                                     </div>
-                                                                )}
                                                                 {task.reminder && (
                                                                     <div className="text-xs opacity-60 mt-1">
                                                                         <Bell size={12} className="inline mr-1" />
                                                                         {task.reminder}
                                                                     </div>
-                                                                )}
                                                                 {(taskEntries.length > 0 || activeTaskTimers[task.id]) && (
                                                                     <div className="text-xs opacity-60 mt-1 flex items-center gap-2">
                                                                         <Clock size={12} className="inline mr-1" />
                                                                         {t('timeTracked')}: {taskTimeLabel}
                                                                     </div>
-                                                                )}
                                                             </div>
                                                             <div className="flex items-center gap-2">
                                                                 <button 
@@ -5922,12 +5878,10 @@
                                                                 >
                                                                     <Timer size={14}/> {t('startTimer')}
                                                                 </button>
-                                                            )}
                                                             {activeTaskTimers[task.id] && (
                                                                 <div className="mt-1 text-center text-xs opacity-70">
                                                                     <span className="animate-pulse">● </span>{t('timerRunning')}
                                                                 </div>
-                                                            )}
                                                         </div>
                                                         
                                                         {/* Checklist */}
@@ -5951,8 +5905,6 @@
                                                                     </div>
                                                                 ))}
                                                             </div>
-                                                        )}
-
                                                         {taskEntries.length > 0 ? (
                                                             <div className="mt-2 space-y-2">
                                                                 <div className="text-[10px] font-bold opacity-70">{t('timeEntries')}</div>
@@ -5992,8 +5944,6 @@
                                                             </div>
                                                         ) : (
                                                             <div className="text-[10px] opacity-60 text-center py-1">{t('noTimeEntries')}</div>
-                                                        )}
-                                                        
                                                         {/* Add Subtask */}
                                                         <div className="mt-2 flex gap-1">
                                                             <input 
@@ -6015,8 +5965,6 @@
                                                 );
                                             })}
                                         </div>
-                                    )}
-                                    
                                     {/* Add New Task Form */}
                                     <div className={`p-3 rounded-lg ${isComic ? 'bg-[#fdf6e3]' : 'bg-black/10'} space-y-2`}>
                                         <input 
@@ -6083,7 +6031,6 @@
                                     </div>
                                 </div>
                             </div>
-                        )}
                     </div>
                 </div>
             );
@@ -6190,7 +6137,6 @@
                                 ))}
                                 {(!friends || friends.length === 0) && (
                                     <div className="text-sm opacity-60">Keine Freunde verfügbar. Füge Freunde hinzu, um deren Verfügbarkeit zu sehen.</div>
-                                )}
                             </div>
                         </div>
                         
@@ -6237,13 +6183,10 @@
                                     </tbody>
                                 </table>
                             </div>
-                        )}
-                        
                         {selectedContacts.length === 0 && friends && friends.length > 0 && (
                             <div className="text-center py-8 opacity-60">
                                 Wähle Kontakte aus, um deren Verfügbarkeit zu sehen
                             </div>
-                        )}
                     </div>
                 </div>
             );
@@ -6390,7 +6333,6 @@
                                     </label>
                                 </div>
                             </div>
-                        )}
                         <div className="space-y-4">
                             <div>
                                 <label className="text-xs opacity-70 block mb-1 font-bold">{t('category')}</label>
@@ -6424,8 +6366,6 @@
                                         </div>
                                     </details>
                                 </div>
-                            )}
-                            
                             <input value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className={`w-full p-3 rounded-lg outline-none ${themeClasses.input}`} placeholder={t('title')}/>
                             <div className="grid grid-cols-2 gap-2"><input type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className={`w-full p-3 rounded-lg outline-none ${themeClasses.input}`}/><input type="time" value={formData.time} onChange={e => setFormData({...formData, time: e.target.value})} className={`w-full p-3 rounded-lg outline-none ${themeClasses.input}`}/></div>
                             <div>
@@ -6538,27 +6478,19 @@
                                                     <option value="1440">1 {t('dayLabel')}</option>
                                                 </select>
                                             </div>
-                                        )}
-                                            
                                             {formData.reminderType === 'workHours' && (
                                             <div className="text-xs opacity-60 p-2 bg-blue-500/10 rounded">
                                                 {t('workHoursReminderHint')}
                                             </div>
-                                        )}
-                                            
                                             {formData.reminderType === 'location' && (
                                             <div className="text-xs opacity-60 p-2 bg-blue-500/10 rounded">
                                                 {t('locationReminderHint')}
                                             </div>
-                                        )}
-                                            
                                             {formData.reminderType === 'pattern' && (
                                             <div className="text-xs opacity-60 p-2 bg-blue-500/10 rounded">
                                                 {t('patternReminderHint')}
                                             </div>
-                                        )}
                                         </div>
-                                    )}
                                 </div>
                             </div>
                             
@@ -6601,8 +6533,6 @@
                                             ))}
                                         </div>
                                     </div>
-                                )}
-                                
                                 {/* Save as template */}
                                 {showTemplateSection && (
                                     <div className="space-y-2 p-3 rounded-lg bg-blue-500/10">
@@ -6624,7 +6554,6 @@
                                             {t('templateSaveHint')}
                                         </div>
                                     </div>
-                                )}
                             </div>
                             
                             {/* Invitees Section */}
@@ -6650,8 +6579,6 @@
                                                 ))}
                                             </div>
                                         </div>
-                                    )}
-                                    
                                     {/* Invitees list */}
                                     {invitees.length > 0 && (
                                         <div className="space-y-2">
@@ -6676,10 +6603,7 @@
                                                 </div>
                                             ))}
                                         </div>
-                                    )}
                                 </div>
-                            )}
-
                             <div className="flex gap-3 mt-4"><button onClick={onClose} className="flex-1 py-3 rounded-xl font-bold opacity-70 bg-slate-800">{t('cancel')}</button><button onClick={handleSave} className={`flex-1 py-3 rounded-xl font-bold ${themeClasses.button}`}>{t('save')}</button></div>
                         </div>
                     </div>
@@ -6699,7 +6623,6 @@
                                     <div className="grid grid-cols-2 gap-2">{shifts.map(s => <button key={s.id} onClick={() => { onAssignShift(formatDate(selectedDate), s.id); onClose(); }} className="p-3 rounded-lg flex items-center justify-center gap-2 font-bold text-sm" style={{ backgroundColor: s.color + '40', border: `1px solid ${s.color}`, color: isComic?'#4a3b2a':'white' }}><div className="w-3 h-3 rounded-full" style={{ backgroundColor: s.color }}></div> {s.name}</button>)}</div>
                                     <button onClick={() => { onClearShift(formatDate(selectedDate)); onClose(); }} className="w-full py-3 bg-red-500/10 text-red-400 border border-red-500/30 rounded-xl font-bold flex items-center justify-center gap-2"><Trash2 size={18}/> {t('clearShift')}</button>
                                 </>
-                            )}
                             <button onClick={() => { onClose(); onCreateEvent(); }} className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 ${themeClasses.button}`}><Plus size={20}/> {t('createEvent')}</button>
                         </div>
                     </div>
@@ -6825,10 +6748,7 @@
                                     <div className="mt-4 text-xs text-slate-400">
                                         Aktuell gespeichert: <span className="text-slate-200 font-bold">{currentPref.manual.label}</span>
                                     </div>
-                                )}
                             </div>
-                        )}
-
                         <div className="mt-4 text-[11px] text-slate-500">
                             Tipp: Für konsistente Ergebnisse (ohne Standortfreigabe) Manuell verwenden.
                         </div>
@@ -6860,8 +6780,6 @@
                             <div className="text-sm text-slate-400 mb-4">
                                 📍 {weatherLocation}
                             </div>
-                        )}
-
                         <div className="space-y-3">
                             {forecastData.time?.slice(0, 7).map((dateStr, idx) => (
                                 <div key={dateStr} className="p-4 rounded-xl bg-slate-950 border border-slate-700 flex items-center justify-between gap-4">
@@ -6880,13 +6798,11 @@
                                             <div className="text-xs text-slate-400">Max</div>
                                             {isValidTemperature(forecastData.temperature_2m_max?.[idx]) && (
                                                 <div className="font-bold text-orange-400">{Math.round(forecastData.temperature_2m_max[idx])}°</div>
-                                            )}
                                         </div>
                                         <div>
                                             <div className="text-xs text-slate-400">Min</div>
                                             {isValidTemperature(forecastData.temperature_2m_min?.[idx]) && (
                                                 <div className="font-bold text-blue-400">{Math.round(forecastData.temperature_2m_min[idx])}°</div>
-                                            )}
                                         </div>
                                         <div>
                                             <div className="text-xs text-slate-400">💧</div>
@@ -6976,8 +6892,6 @@
                                 <div className="text-sm text-red-300 bg-red-500/10 border border-red-500/20 p-3 rounded-lg">
                                     {error}
                                 </div>
-                            )}
-
                             <button
                                 type="submit"
                                 className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold"
@@ -7094,7 +7008,6 @@
                                                 }`}>
                                                     {selectedFriends.includes(friend.id) && (
                                                         <Check size={14} className="text-white"/>
-                                                    )}
                                                 </div>
                                                 <div className="flex items-center gap-2 flex-1">
                                                     <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
@@ -7113,16 +7026,11 @@
                                             <Users className="inline mr-1" size={12}/>
                                             {selectedFriends.length} {selectedFriends.length === 1 ? t('friend') : t('friends')} {t('selected')}
                                         </div>
-                                    )}
                                 </div>
-                            )}
-                            
                             {friends && friends.length === 0 && (
                                 <div className="text-xs opacity-60 p-3 rounded-lg bg-black/10">
                                     {t('noFriends')}
                                 </div>
-                            )}
-                            
                             <button 
                                 onClick={handleCreate}
                                 className={`w-full py-3 rounded-lg font-bold ${themeClasses.button}`}
@@ -7149,7 +7057,6 @@
                                                     <Users className="inline mr-1" size={10}/>
                                                     {cal.members.length} {cal.members.length === 1 ? t('member') : t('members')}
                                                 </div>
-                                            )}
                                         </div>
                                         <div className="text-xs opacity-60">
                                             {cal.ownerId === currentUserId ? t('calendarOwner') : (cal.roles && cal.roles[currentUserId] || t('calendarMember'))}
@@ -7191,8 +7098,6 @@
                             <div className="mb-4 text-xs text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-lg p-2">
                                 {getSettingsText(settingsEditorLang, 'migrationNotice')}
                             </div>
-                        )}
-
                         <div className="grid md:grid-cols-[1.1fr_0.9fr] gap-4">
                             <div className="space-y-4">
                                 <div className="flex gap-2 text-xs font-bold uppercase">
@@ -7215,8 +7120,6 @@
                                             </button>
                                         ))}
                                     </div>
-                                )}
-
                                 {steps[step].key === 'font' && (
                                     <div className="space-y-3">
                                         <label className="text-xs font-bold uppercase text-slate-400">{t('font')}</label>
@@ -7230,8 +7133,6 @@
                                             <input type="range" min="0.8" max="1.3" step="0.05" value={fontScale} onChange={(e) => setFontScale(parseFloat(e.target.value))} className="w-full accent-blue-500"/>
                                         </div>
                                     </div>
-                                )}
-
                                 {steps[step].key === 'language' && (
                                     <div className="space-y-3">
                                         <label className="text-xs font-bold uppercase text-slate-400">{getSettingsText(settingsEditorLang, 'languageLabel')}</label>
@@ -7242,7 +7143,6 @@
                                         </select>
                                         <div className="text-xs text-slate-400">{getSettingsText(settingsEditorLang, 'languageHint')}</div>
                                     </div>
-                                )}
                             </div>
 
                             <div className="rounded-xl border border-slate-700 bg-slate-950 p-4">
@@ -7465,7 +7365,6 @@
                                             >
                                                 {showFriendSelector ? t('cancel') : t('add')}
                                             </button>
-                                        )}
                                     </div>
                                     
                                     {/* Shared with friends list */}
@@ -7481,8 +7380,6 @@
                                                 </div>
                                             ))}
                                         </div>
-                                    )}
-                                    
                                     {/* Friend selector */}
                                     {showFriendSelector && availableFriends.length > 0 && (
                                         <div className="space-y-2 p-3 rounded-lg bg-black/20 border border-blue-500/20">
@@ -7505,7 +7402,6 @@
                                                         }`}>
                                                             {selectedNewFriends.includes(friend.id) && (
                                                                 <Check size={10} className="text-white"/>
-                                                            )}
                                                         </div>
                                                         <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white">
                                                             <User size={12}/>
@@ -7521,18 +7417,12 @@
                                                 >
                                                     {t('shareCalendar')} ({selectedNewFriends.length})
                                                 </button>
-                                            )}
                                         </div>
-                                    )}
-                                    
                                     {sharedWithFriends.length === 0 && !showFriendSelector && (
                                         <div className="text-xs opacity-60 p-2">
                                             {availableFriends.length > 0 ? t('selectFriends') : t('noFriends')}
                                         </div>
-                                    )}
                                 </div>
-                            )}
-                            
                             {/* Public Sharing Section */}
                             <div className="flex items-center justify-between p-3 rounded-lg bg-black/10">
                                 <div>
@@ -7595,8 +7485,6 @@
                                         </div>
                                     </div>
                                 </>
-                            )}
-                            
                             <div className="text-xs opacity-60 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
                                 <AlertCircle className="inline mr-1" size={14}/>
                                 {t('subscriptionLinkInfo')}
@@ -7774,7 +7662,6 @@
                                 <PieChart size={48} className="mx-auto mb-3 opacity-40"/>
                                 <div>{t('noStatsData')}</div>
                             </div>
-                        )}
                     </div>
                 </div>
             );
@@ -7835,7 +7722,7 @@
                     <div className={`p-5 rounded-2xl ${themeClasses.card}`}>
                         <div className="flex items-center justify-between gap-3">
                             <div className="min-w-0">
-                                <div className="text-sm font-bold">Kalender-Chat</div>
+                                <div className="text-sm font-bold">{t('calendarChatTitle')}</div>
                                 <div className="text-xs opacity-70">
                                     {activeCalendar ? `Kalender: ${activeCalendar.name || activeCalendar.id}` : 'Kein Kalender'}
                                 </div>
@@ -7882,7 +7769,6 @@
                                     </div>
                                 ))}
                             </div>
-                        )}
                     </div>
 
                     <div className={`p-4 rounded-2xl ${themeClasses.card}`}>
@@ -7914,7 +7800,6 @@
                                     </div>
                                 ))}
                             </div>
-                        )}
                     </div>
                 </div>
             );
@@ -8123,6 +8008,14 @@ function TimeRosterApp() {
             const [secretInitialOpen, setSecretInitialOpen] = useState(null);
 
             const [secretPremiumUnlocked, setSecretPremiumUnlocked] = useState(() => safeStorageGet('timeroster_secret_premium_unlocked') === 'true');
+            // Expose a small global hook so the Secret messenger can lock itself (forces codeword next open)
+            useEffect(() => {
+                window.__lockSecretPremium = () => {
+                    try { safeStorageSet('timeroster_secret_premium_unlocked', 'false'); } catch(e) {}
+                    setSecretPremiumUnlocked(false);
+                };
+                return () => { try { delete window.__lockSecretPremium; } catch(e) {} };
+            }, []);
             const [showPremiumGate, setShowPremiumGate] = useState(false);
             const [selectedDate, setSelectedDate] = useState(new Date());
             const [showEventModal, setShowEventModal] = useState(false);
@@ -10293,8 +10186,6 @@ setShowEventModal(false);
                             <h1 className="text-xl font-bold">{headerTitle}</h1>
                             <button onClick={() => setView('settings')} className="p-2 rounded-lg hover:bg-white/5 active:scale-95" title={t('openSettingsTitle')}><Settings size={20}/></button>
                         </div>
-                    )}
-
                     {/* Global Error Banner */}
                     {uiError && <div className="bg-red-600 text-white p-2 text-center text-xs font-bold">{uiError}</div>}
 
@@ -10316,7 +10207,6 @@ setShowEventModal(false);
                                                     <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-600 rounded-full">
                                                         {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
                                                     </span>
-                                                )}
                                             </div>
                                             <h2 className="text-xl font-bold leading-snug mt-1">{dailyQuote.text}</h2>
                                             <div className="text-xs opacity-60 mt-1">{dailyQuote.origin}</div>
@@ -10426,8 +10316,6 @@ setShowEventModal(false);
                                             </div>
                                         </details>
                                     </div>
-                                )}
-
                                 <div className="space-y-3 pb-6">
                                     <div className="flex items-center justify-between">
                                         <h3 className="font-bold">{t('upcoming')}</h3>
@@ -10455,8 +10343,6 @@ setShowEventModal(false);
                                     ))}
                                 </div>
                             </div>
-                        )}
-
                             {view === 'calendar' && !showSearch && (
                                 <div className="h-full flex flex-col">
                                     <div className={`flex items-center justify-between px-4 py-2 gap-2 ${themeClasses.calendarHeader}`}>
@@ -10481,9 +10367,7 @@ setShowEventModal(false);
                                                     </select>
                                                     {activeCalendarId === 'all' && (
                                                         <span className="text-xs opacity-70 whitespace-nowrap">{t('allCalendars')}</span>
-                                                    )}
                                                 </div>
-                                            )}
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button onClick={() => setShowAvailabilityOverview(true)} className="p-2 rounded-lg bg-green-600/20 text-green-400" title={t('availabilityOverview')}>
@@ -10518,7 +10402,6 @@ setShowEventModal(false);
                                     <div className="mt-3 space-y-2 max-h-48 overflow-y-auto">
                                         {calendarEventListItems.length === 0 && (
                                             <div className="text-xs opacity-60">{t('noEventsInRange')}</div>
-                                        )}
                                         {calendarEventListItems.map(ev => {
                                             const cat = CATEGORIES.find(c => c.id === ev.category);
                                             return (
@@ -10537,7 +10420,6 @@ setShowEventModal(false);
                                                             <div className="text-[10px] opacity-50 truncate">
                                                                 {(calendars.find(c => c.id === ev.calendarId)?.name) || ''}
                                                             </div>
-                                                        )}
                                                     </div>
                                                 </button>
                                             );
@@ -10550,7 +10432,6 @@ setShowEventModal(false);
                                         <div className="px-4 pb-4 space-y-2">
                                             {monthEventItems.length === 0 && (
                                                 <div className="text-xs opacity-60">{t('noMonthEvents')}</div>
-                                            )}
                                             {monthEventItems.map(ev => {
                                                 const cat = CATEGORIES.find(c => c.id === ev.category);
                                                 return (
@@ -10569,14 +10450,12 @@ setShowEventModal(false);
                                                                 <div className="text-[10px] opacity-50 truncate">
                                                                     {(calendars.find(c => c.id === ev.calendarId)?.name) || ''}
                                                                 </div>
-                                                            )}
                                                         </div>
                                                     </button>
                                                 );
                                             })}
                                         </div>
                                     </details>
-                                )}
                                 {pendingEventRequests.length > 0 && (
                                     <details className="mx-4 mb-6 rounded-xl border border-white/10 bg-black/20 overflow-hidden">
                                         <summary className="cursor-pointer px-4 py-3 font-bold text-sm text-orange-400">{t('requestDropdown')} ({pendingEventRequests.length})</summary>
@@ -10622,10 +10501,7 @@ setShowEventModal(false);
                                             </div>
                                         </div>
                                     </details>
-                                )}
                             </div>
-                        )}
-
                         {view === 'calendar' && showSearch && (
                             <div className="h-full flex flex-col pb-32">
                                 <div className={`p-4 ${themeClasses.calendarHeader}`}>
@@ -10666,8 +10542,6 @@ setShowEventModal(false);
                                     })}
                                 </div>
                             </div>
-                        )}
-
                         {view === 'tasks' && (
                             <div className="h-full overflow-y-auto px-4 py-6 space-y-4">
                                 <div className="flex items-center justify-between mb-4">
@@ -10742,7 +10616,6 @@ setShowEventModal(false);
                                             >
                                                 {t('cancel')}
                                             </button>
-                                        )}
                                     </div>
                                 </div>
                                 
@@ -10786,19 +10659,16 @@ setShowEventModal(false);
                                             <Clock size={12}/>
                                             {task.dueDate}
                                         </div>
-                                    )}
                                     {!task.dueDate && taskShortDate && (
                                         <div className="text-xs opacity-60 mt-1 flex items-center gap-1">
                                             <Clock size={12}/>
                                             {taskShortDate}
                                         </div>
-                                    )}
                                 {(taskEntries.length > 0 || activeTaskTimers[task.id]) && (
                                     <div className="text-xs opacity-60 mt-1 flex items-center gap-1">
                                         <Clock size={12}/>
                                         {t('timeTracked')}: {taskTimeLabel}
                                     </div>
-                                )}
                                 <div className="mt-2">
                                     {activeTaskTimers[task.id] ? (
                                         <button
@@ -10814,12 +10684,10 @@ setShowEventModal(false);
                                         >
                                             <Timer size={14}/> {t('startTimer')}
                                         </button>
-                                    )}
                                     {activeTaskTimers[task.id] && (
                                         <div className="mt-1 text-center text-xs opacity-70">
                                             <span className="animate-pulse">● </span>{t('timerRunning')}
                                         </div>
-                                    )}
                                 </div>
                                 {taskEntries.length > 0 ? (
                                     <div className="mt-2 space-y-2">
@@ -10860,7 +10728,6 @@ setShowEventModal(false);
                                     </div>
                                 ) : (
                                     <div className="text-[10px] opacity-60 text-center py-1">{t('noTimeEntries')}</div>
-                                )}
                             </div>
                             <div className="flex gap-1">
                                 <button 
@@ -10896,8 +10763,6 @@ setShowEventModal(false);
                                                         {overdue.map(task => <TaskCard key={task.id} task={task}/>)}
                                                     </div>
                                                 </div>
-                                            )}
-                                            
                                             {todayTasks.length > 0 && (
                                                 <div>
                                                     <h3 className="text-sm font-bold text-orange-400 mb-2">{t('todayTasks')} ({todayTasks.length})</h3>
@@ -10905,8 +10770,6 @@ setShowEventModal(false);
                                                         {todayTasks.map(task => <TaskCard key={task.id} task={task}/>)}
                                                     </div>
                                                 </div>
-                                            )}
-                                            
                                             {upcoming.length > 0 && (
                                                 <div>
                                                     <h3 className="text-sm font-bold text-blue-400 mb-2">{t('upcomingTasks')} ({upcoming.length})</h3>
@@ -10914,8 +10777,6 @@ setShowEventModal(false);
                                                         {upcoming.map(task => <TaskCard key={task.id} task={task}/>)}
                                                     </div>
                                                 </div>
-                                            )}
-                                            
                                             {noDueDate.length > 0 && (
                                                 <div>
                                                     <h3 className="text-sm font-bold opacity-70 mb-2">{t('noDueDateTasks')} ({noDueDate.length})</h3>
@@ -10923,8 +10784,6 @@ setShowEventModal(false);
                                                         {noDueDate.map(task => <TaskCard key={task.id} task={task}/>)}
                                                     </div>
                                                 </div>
-                                            )}
-                                            
                                             {completed.length > 0 && (
                                                 <details className="mt-4">
                                                     <summary className="text-sm font-bold text-green-400 mb-2 cursor-pointer">
@@ -10934,20 +10793,15 @@ setShowEventModal(false);
                                                         {completed.map(task => <TaskCard key={task.id} task={task}/>)}
                                                     </div>
                                                 </details>
-                                            )}
-                                            
                                             {tasks.length === 0 && (
                                                 <div className="text-center py-12 opacity-60">
                                                     <ListChecks size={48} className="mx-auto mb-3 opacity-40"/>
                                                     <div>{t('noTasks')}</div>
                                                 </div>
-                                            )}
                                         </>
                                     );
                                 })()}
                             </div>
-                        )}
-
                     {view === 'friends' && <FriendsView user={user} themeClasses={themeClasses} isComic={isComic} currentShareCode={shareCode} currentUserName={((displayName||'').trim()||getUserName(user))} onSelectFriend={(fid) => { setViewingUserId(fid); setView('calendar'); }}/>} 
                     {view === 'messages' && (
                         <MessagesView
@@ -10960,12 +10814,8 @@ setShowEventModal(false);
                                 handleSecretMessagesTrigger({ initialOpen: { friendId, friendName } });
                             }}
                         />
-                    )}
-
                     {view === 'settings' && <SettingsView onRegisterFcm={async () => await registerFcmToken()} theme={theme} setTheme={setTheme} lang={lang} setLang={(nextLang) => { setLang(nextLang); setCurrentLang(nextLang); setSettingsEditorLang(nextLang); }} fontScale={fontScale} setFontScale={setFontScale} currentFont={currentFont} setCurrentFont={setCurrentFont} shifts={shifts} saveShiftConfig={saveShiftConfig} deleteShift={deleteShift} signOut={signOut} auth={auth} themeClasses={themeClasses} user={user} shareCode={shareCode} displayName={displayName} setDisplayName={setDisplayName} onSaveDisplayName={saveDisplayName} onOpenVisualEditor={() => setShowVisualSettingsEditor(true)} onOpenFriends={() => setView('friends')} settingsEditorLang={settingsEditorLang} setSettingsEditorLang={setSettingsEditorLang} openCustomThemeWizard={() => setShowCustomThemeWizard(true)} onApplyAiDesign={(prompt) => applyAiDesign({ prompt, setTheme, setCustomTheme, setCurrentFont, setFontScale })} onOpenCalendarManager={() => setShowCalendarManager(true)} onOpenCalendarSettings={(calendar) => { setSelectedCalendarForSettings(calendar); setShowCalendarSettings(true); }} onExportCalendarICS={exportCalendarICS} calendars={calendars} friends={friends} activeCalendarId={activeCalendarId} setActiveCalendarId={setActiveCalendarId} updateCalendar={updateCalendar} shareCalendarWithUser={shareCalendarWithUser} holidayCountries={holidayCountries} holidayCountriesLoading={holidayCountriesLoading} holidayCountriesError={holidayCountriesError} holidayPref={holidayPref} setHolidayPref={setHolidayPref} holidaySyncing={holidaySyncing} holidayLastSync={holidayLastSync} onSyncHolidays={syncHolidays} holidayFilter={holidayFilter} setHolidayFilter={setHolidayFilter} notificationPrefs={notificationPrefs} saveNotificationPrefs={saveNotificationPrefs} notificationsSupported={notificationsSupported} fcmToken={fcmToken} requestNotificationPermission={requestNotificationPermission} pwaInstallPrompt={pwaInstallPrompt} isPwaInstalled={isPwaInstalled} installPwa={installPwa} />}
                     </main>
-                    )}
-
                     {/* In-App Toast Notifications */}
                     <div className="fixed top-4 right-4 z-[200] flex flex-col gap-2 max-w-sm pointer-events-none">
                         {toastQueue.map((toast) => (
@@ -10990,8 +10840,6 @@ setShowEventModal(false);
                                 <button key={i.id} onClick={() => setView(i.id)} className={`flex flex-col items-center p-2 rounded-lg ${view===i.id?(isComic?'text-[#8b5a2b] font-bold scale-110':'text-blue-400'):'opacity-60'}`}>{i.icon}<span className="text-[10px] mt-1">{i.l}</span></button>
                             ))}
                         </nav>
-                    )}
-
                     <EventModal show={showEventModal} onClose={()=>setShowEventModal(false)} onSave={addEvent} selectedDate={selectedDate} themeClasses={themeClasses} isComic={isComic} user={user} viewingFriendId={viewingUserId} viewingFriendName={viewingFriendName} currentUserName={((displayName||'').trim()||getUserName(user))}/>
                     <AvailabilityOverviewModal show={showAvailabilityOverview} onClose={()=>setShowAvailabilityOverview(false)} selectedDate={selectedDate} themeClasses={themeClasses} isComic={isComic} user={user} friends={friends.filter(f => f.status === 'accepted')} allEvents={events}/>
                     <DayOptionsModal show={showDayOptions} onClose={()=>setShowDayOptions(false)} onAssignShift={assignShift} onClearShift={clearShift} onCreateEvent={()=>{setShowEventModal(true);}} selectedDate={selectedDate} shifts={shifts} themeClasses={themeClasses} isComic={isComic} viewingFriend={!!viewingUserId} disableShiftInteractions={activeCalendarId === 'all'}/>
