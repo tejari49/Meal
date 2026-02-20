@@ -4600,6 +4600,7 @@
                                 );
                             })}
                     </div>
+                    </div>
                 </div>
             );
         };
@@ -4753,7 +4754,7 @@
                             onClick={handleTitleTap}
                         >
                             {viewingFriendName && <span className="text-sm opacity-70">Kalender von {viewingFriendName}</span>}
-                            <h2 className="text-xl font-bold">{currentDate.toLocaleDateString(getCurrentLocale(), { month: 'long', year: 'numeric' </h2>
+                            <h2 className="text-xl font-bold">{currentDate.toLocaleDateString(getCurrentLocale(), { month: 'long', year: 'numeric' })}</h2>
                             <span className="text-xs opacity-60 flex items-center gap-1"><BarChart2 size={10}/> {shifts.reduce((acc,s)=>acc+(monthStats[s.id]||0),0)} Schichten</span>
                         </div>
                         <button onClick={() => setCurrentDate(new Date(year, month + 1, 1))} className="p-2"><ChevronRight /></button>
@@ -4836,7 +4837,7 @@
                                                 {primaryShift && primaryShift.id !== 'off' && shiftIndicators.length === 1 && <span className="text-[9px] mt-auto mb-1 opacity-80 leading-tight truncate px-1">{primaryShift.name.substring(0,2)}</span>}
                                             </div>
                                         );
-                                     )}
+                                     })}
                                  </React.Fragment>
                              );
                          })}
