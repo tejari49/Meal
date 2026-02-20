@@ -24,7 +24,7 @@
         // Service Worker for offline + installability (works on GitHub Pages)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js', { scope: './' })
+                navigator.serviceWorker.register('./sw.js?v=20260220', { scope: './' })
                     .catch(err => console.warn('Service Worker registration failed:', err));
             });
         }
@@ -367,12 +367,8 @@
             console.warn('FCM not available in this environment:', e?.message || e);
         }
         const APP_URL = "https://tejari49.github.io/Meal/";
-        const DEFAULT_VAPID_KEY = ""; // Set once per app/project (Firebase → Cloud Messaging → Web Push certificates)
-        const getVapidKey = () => {
-            const meta = document.querySelector('meta[name="fcm-vapid-key"]');
-            const fromMeta = (meta?.getAttribute("content") || "").trim();
-            return (fromMeta || DEFAULT_VAPID_KEY || "").trim();
-        };
+        const DEFAULT_VAPID_KEY = ""; // Admin config: set the Web Push certificate key (VAPID public key) once (per app/project) to enable push on this device.
+        const getVapidKey = () => (localStorage.getItem('timeroster_fcm_vapid_key') || DEFAULT_VAPID_KEY || '').trim();
 
 
         const appId = "timeroster-app";
@@ -802,6 +798,7 @@
 
         const QUOTE_TRANSLATIONS = {
             en: {
+            calendarChat: "Chat",
                 wisdom: [
                     { text: "Slow and steady still gets you there.", origin: "Proverb (Europe)" },
                     { text: "Patience is another form of strength.", origin: "Proverb (Asia)" },
@@ -892,6 +889,7 @@
                 ]
             },
             it: {
+            calendarChat: "Chat",
                 wisdom: [
                     { text: "Chi va piano arriva comunque.", origin: "Proverbio (Europa)" },
                     { text: "La pazienza è una forma di forza.", origin: "Proverbio (Asia)" },
@@ -2617,6 +2615,7 @@
 
         const SETTINGS_EDITOR_TEXT = {
             de: {
+            calendarChat: "Chat",
                 visualEditor: "Visual-Editor",
                 guidedSetup: "Geführte Einrichtung",
                 stepTheme: "Design wählen",
@@ -2818,7 +2817,7 @@
         const INPUT_REFOCUS_DELAY = 50;
         const DEFAULT_MESSAGE_SETTINGS = { readOnce: false, expiry: '24h' };
         
-        const SecretMsnMessages = ({ user, onClose, onLock, queuePushNotification, initialOpen, notificationPrefs, saveNotificationPrefs }) => {
+        const SecretMsnMessages = ({ user, onClose, queuePushNotification, initialOpen, notificationPrefs, saveNotificationPrefs }) => {
             const [view, setView] = useState('list'); // list | add | message | profile | friendProfile | createGroup
             const [contacts, setContacts] = useState([]);
             const [groups, setGroups] = useState([]);
@@ -3815,9 +3814,6 @@
                                 <div className="flex items-center gap-3"><div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center"><MessageCircle size={14}/></div><span className="font-bold text-sm tracking-tight">{t('messenger')}</span></div>
                                 <div className="flex items-center gap-1">
                                     <button onClick={() => setView('profile')} title={t('profile')} className="cam-control-btn" style={{width:32,height:32,background:'rgba(255,255,255,0.06)'}}><User size={14}/></button>
-                                    {onLock && (
-                                        <button onClick={onLock} title="Sperren" className="cam-control-btn" style={{width:32,height:32,background:'rgba(255,255,255,0.06)'}}><Lock size={14}/></button>
-                                    )}
                                     <button onClick={onClose} className="cam-control-btn" style={{width:32,height:32,background:'rgba(255,255,255,0.06)'}}><X size={14}/></button>
                                 </div>
                             </div>
@@ -4942,7 +4938,9 @@
             const [editForm, setEditForm] = useState({ name: '', start: '', end: '', color: '#000000' });
             const [aiDesignPrompt, setAiDesignPrompt] = useState('');
             const [manageCalendarId, setManageCalendarId] = useState('');
-const [friendSelections, setFriendSelections] = useState([]);
+            const [vapidKey, setVapidKey] = useState(() => (localStorage.getItem('timeroster_fcm_vapid_key') || '').trim());
+
+            const [friendSelections, setFriendSelections] = useState([]);
             const [manageCalendarError, setManageCalendarError] = useState('');
             const [calendarNameDraft, setCalendarNameDraft] = useState('');
 
@@ -7837,7 +7835,7 @@ const [friendSelections, setFriendSelections] = useState([]);
                     <div className={`p-5 rounded-2xl ${themeClasses.card}`}>
                         <div className="flex items-center justify-between gap-3">
                             <div className="min-w-0">
-                                <div className="text-sm font-bold">Message</div>
+                                <div className="text-sm font-bold">Kalender-Chat</div>
                                 <div className="text-xs opacity-70">
                                     {activeCalendar ? `Kalender: ${activeCalendar.name || activeCalendar.id}` : 'Kein Kalender'}
                                 </div>
@@ -7848,7 +7846,7 @@ const [friendSelections, setFriendSelections] = useState([]);
                             </div>
                         </div>
                         <div className="mt-4 text-xs opacity-70">
-                            Öffne direkt den Secret-Chat mit einem Kalender-Mitglied.
+                            Schreibe mit Kalender-Mitgliedern & Freunden (normaler Chat).
                         </div>
                     </div>
 
@@ -10272,7 +10270,7 @@ setShowEventModal(false);
             );
             const headerTitle = viewingUserId
                 ? t('viewing')
-                : (view === 'dashboard' ? dashboardLabelWithAlert : (view === 'messages' ? 'Chat' : t(view)));
+                : (view === 'dashboard' ? dashboardLabelWithAlert : (view === 'messages' ? t('calendarChat') : t(view)));
             if (!authChecked) return <div className="flex items-center justify-center min-h-screen bg-slate-100 text-slate-900"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div></div>;
             if (view === 'auth') return <AuthView setView={setView} />;
 
@@ -10302,7 +10300,7 @@ setShowEventModal(false);
 
                     {viewingUserId && !showSecret && <div className="bg-orange-500 text-white p-2 text-center text-xs font-bold flex justify-between items-center px-4"><span>{t('viewing')}: {viewingFriendName || 'Freund'}</span><button onClick={() => setViewingUserId(null)} className="underline">{t('backToMe')}</button></div>}
 
-                    {showSecret && <SecretMsnMessages user={user} initialOpen={secretInitialOpen} onClose={() => { setShowSecret(false); setSecretInitialOpen(null); }} onLock={() => { setSecretPremiumUnlocked(false); safeStorageSet('timeroster_secret_premium_unlocked','false'); setShowSecret(false); setSecretInitialOpen(null); }} queuePushNotification={queuePushNotification} notificationPrefs={notificationPrefs} saveNotificationPrefs={saveNotificationPrefs} />}
+                    {showSecret && <SecretMsnMessages user={user} initialOpen={secretInitialOpen} onClose={() => { setShowSecret(false); setSecretInitialOpen(null); }} queuePushNotification={queuePushNotification} notificationPrefs={notificationPrefs} saveNotificationPrefs={saveNotificationPrefs} />}
 
                     {!showSecret && (
                     <main className="pb-24 h-[calc(100vh-60px)] overflow-y-auto">
@@ -10988,7 +10986,7 @@ setShowEventModal(false);
 
                     {!showSecret && (
                         <nav className={`fixed bottom-0 w-full pb-safe pt-2 px-6 flex justify-between items-center z-50 ${themeClasses.tabBar}`}>
-                            {[{id:'dashboard',icon:<Home/>,l:dashboardLabelWithAlert},{id:'calendar',icon:<Calendar/>,l:t('calendar')},{id:'tasks',icon:<ListChecks/>,l:t('taskManager')},{id:'messages',icon:<MessageCircle/>,l:'Chat'},{id:'settings',icon:<Settings/>,l:t('settings')}].map(i => (
+                            {[{id:'dashboard',icon:<Home/>,l:dashboardLabelWithAlert},{id:'calendar',icon:<Calendar/>,l:t('calendar')},{id:'tasks',icon:<ListChecks/>,l:t('taskManager')},{id:'messages',icon:<MessageCircle/>,l:t('calendarChat')},{id:'settings',icon:<Settings/>,l:t('settings')}].map(i => (
                                 <button key={i.id} onClick={() => setView(i.id)} className={`flex flex-col items-center p-2 rounded-lg ${view===i.id?(isComic?'text-[#8b5a2b] font-bold scale-110':'text-blue-400'):'opacity-60'}`}>{i.icon}<span className="text-[10px] mt-1">{i.l}</span></button>
                             ))}
                         </nav>
