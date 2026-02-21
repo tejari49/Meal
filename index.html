@@ -4975,11 +4975,22 @@
         };
 
         // --- SETTINGS COMPONENT ---
-            const SettingsView = ({ theme, setTheme, lang, setLang, fontScale, setFontScale, currentFont, setCurrentFont, shifts, saveShiftConfig, deleteShift, signOut, themeClasses, user, shareCode, displayName, setDisplayName, onSaveDisplayName, onOpenVisualEditor, onOpenFriends, settingsEditorLang, setSettingsEditorLang, openCustomThemeWizard, onApplyAiDesign, onOpenCalendarManager, onOpenCalendarSettings, onExportCalendarICS, calendars, friends, activeCalendarId, setActiveCalendarId, updateCalendar, shareCalendarWithUser, holidayCountries, holidayCountriesLoading, holidayCountriesError, holidayPref, setHolidayPref, holidaySyncing, holidayLastSync, onSyncHolidays, holidayFilter, setHolidayFilter, notificationPrefs, saveNotificationPrefs, notificationsSupported, fcmToken, requestNotificationPermission, notifPermission, pwaInstallPrompt, isPwaInstalled, installPwa, onRegisterFcm, notifLoadingProp: notifLoadingProp = false, setNotifLoading = () => 
-            const notifPermissionProp = (typeof notifPermission !== 'undefined' && notifPermission) ? notifPermission : ((typeof Notification !== 'undefined') ? notifPermissionProp : 'default');
-{}, notifErrorProp: notifErrorProp = null, setNotifError = () => {} }) => {
+            const SettingsView = ({
+  theme, setTheme, lang, setLang, fontScale, setFontScale, currentFont, setCurrentFont,
+  shifts, saveShiftConfig, deleteShift, signOut, themeClasses, user, shareCode, displayName,
+  setDisplayName, onSaveDisplayName, onOpenVisualEditor, onOpenFriends, settingsEditorLang,
+  setSettingsEditorLang, openCustomThemeWizard, onApplyAiDesign, onOpenCalendarManager,
+  onOpenCalendarSettings, onExportCalendarICS, calendars, friends, activeCalendarId,
+  setActiveCalendarId, updateCalendar, shareCalendarWithUser, holidayCountries,
+  holidayCountriesLoading, holidayCountriesError, holidayPref, setHolidayPref, holidaySyncing,
+  holidayLastSync, onSyncHolidays, holidayFilter, setHolidayFilter, notificationPrefs,
+  saveNotificationPrefs, notificationsSupported, fcmToken, requestNotificationPermission,
+  notifPermission, pwaInstallPrompt, isPwaInstalled, installPwa, onRegisterFcm,
+  notifLoading = false, setNotifLoading = () => {}, notifError = null, setNotifError = () => {}
+}) => {
             const [openSection, setOpenSection] = useState(null);
             const settingsRootRef = useRef(null);
+            const currentNotifPermission = (typeof notifPermission !== 'undefined' && notifPermission) ? notifPermission : ((typeof Notification !== 'undefined' && Notification.permission) ? Notification.permission : 'default');
 
             // Defensive: remove stray text nodes like "}}" that can appear after copy/paste merges
             useEffect(() => {
@@ -5513,37 +5524,37 @@
                                         }}
                                         className="w-full p-3 bg-blue-600 text-white rounded-lg font-bold text-sm"
                                     >
-                                        <Bell size={16} className="inline mr-2"/>{notifLoadingProp ? 'Aktiviere…' : t('notificationEnableBtn')}
+                                        <Bell size={16} className="inline mr-2"/>{notifLoading ? 'Aktiviere…' : t('notificationEnableBtn')}
                                     </button>
                                 )}
 
                                 {notificationsSupported && (
                                     <div className="text-xs space-y-1">
                                         <div className="opacity-70">
-                                            {notifPermissionProp === 'denied'
+                                            {currentNotifPermission === 'denied'
                                                 ? t('notificationPermissionDenied')
-                                                : (notifPermissionProp === 'granted' ? t('notificationEnabled') : t('notificationDisabled'))}
+                                                : (currentNotifPermission === 'granted' ? t('notificationEnabled') : t('notificationDisabled'))}
                                         </div>
                                         <div className="opacity-70">
                                             Push/FCM: {fcmToken ? 'Token OK' : 'kein Token'}
                                         </div>
 
-                                        {notifErrorProp === 'missingVapid' && (
+                                        {notifError === 'missingVapid' && (
                                             <div className="text-amber-400 bg-amber-400/10 p-2 rounded-lg">
                                                 Admin-Setup fehlt: VAPID-Key ist leer. Push/FCM kann kein Token erstellen.
                                             </div>
                                         )}
-                                        {notifErrorProp === 'tokenFailed' && (
+                                        {notifError === 'tokenFailed' && (
                                             <div className="text-amber-400 bg-amber-400/10 p-2 rounded-lg">
                                                 Token konnte nicht registriert werden. Prüfe Service Worker + Firebase Messaging.
                                             </div>
                                         )}
-                                        {notifErrorProp === 'permissionDenied' && (
+                                        {notifError === 'permissionDenied' && (
                                             <div className="text-amber-400 bg-amber-400/10 p-2 rounded-lg">
                                                 Bitte in Android/Chrome die Benachrichtigungen für diese App/Site erlauben.
                                             </div>
                                         )}
-                                        {notifErrorProp === 'unknown' && (
+                                        {notifError === 'unknown' && (
                                             <div className="text-amber-400 bg-amber-400/10 p-2 rounded-lg">
                                                 Unbekannter Fehler beim Aktivieren. Öffne die Konsole für Details.
                                             </div>
