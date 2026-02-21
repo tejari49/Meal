@@ -3855,9 +3855,10 @@
                         ) : (
                             <>
                                 <div className="msn-header p-4 flex justify-between items-center">
-                                    <div className="flex items-center gap-3"><div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center"><MessageCircle size={14}/></div><div className="flex items-center gap-2"><span className="font-bold text-sm tracking-tight">Messenger</span><span className="text-[11px] font-bold px-2 py-1 rounded-full bg-amber-500/20 text-amber-200 border border-amber-500/30 flex items-center gap-1"><span aria-hidden="true">🔒</span><span>Secret</span></span></div></div>
+                                    <div className="flex items-center gap-3"><div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center"><MessageCircle size={14}/></div><div className="flex items-center gap-2"><span className="font-bold text-sm tracking-tight">{t('messenger')}</span><span className="text-[11px] font-bold px-2 py-1 rounded-full bg-amber-500/20 text-amber-200 border border-amber-500/30 flex items-center gap-1"><span aria-hidden="true">🔒</span><span>Secret</span></span></div></div>
                                     <div className="flex items-center gap-1">
-                                        <button onClick={() => setView('profile')} title="Profil" className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition"><User size={14}/></button>
+                                        <button onClick={() => setView('profile')} title={t('profile')} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition"><User size={14}/></button>
+                                        <button onClick={() => { try { if (window.__lockSecretPremium) window.__lockSecretPremium(); } catch(e) {}; onClose && onClose(); }} title="Secret sperren" className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition"><Lock size={14}/></button>
                                         <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-red-500/30 transition"><X size={14}/></button>
                                     </div>
                                 </div>
@@ -9498,12 +9499,24 @@ function TimeRosterApp() {
                     }
                 } catch (e) {
                     console.error("addEvent error", e);
+                    // Keep the modal open so the user can adjust and retry
+                    try { showLocalNotification('TimeRoster', t('eventSaveError'), `ev-fail-${Date.now()}`); } catch(_) {}
                     alert(t('eventSaveError'));
+                    return;
                 }
 
-                                        // Notify calendar members about changes (neutral)
-                        await queueCalendarUpdatedToMembers(targetCalendarId);
-setShowEventModal(false); 
+                // Notify calendar members about changes (neutral)
+                try {
+                    if (resolvedCalendarId) {
+                        await queueCalendarUpdatedToMembers(resolvedCalendarId);
+                    }
+                } catch (e) {
+                    console.warn('queueCalendarUpdatedToMembers failed:', e?.message || e);
+                }
+
+                // Close modal + instant feedback
+                setShowEventModal(false);
+                try { showLocalNotification('TimeRoster', 'Termin gespeichert ✓', `ev-${eventId}`); } catch(_) {}
             };
             
             const updateEvent = async (d) => { 
