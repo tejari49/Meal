@@ -4388,7 +4388,7 @@
                 };
 
             return (
-                <div className="flex flex-col items-center justify-center min-h-screen p-6 relative z-50">
+                <div className="flex flex-col items-center justify-center min-h-screen p-6 relative z-50 bg-slate-950 text-white">
                     <div className="w-full max-w-sm space-y-6">
                         <h1 className="text-4xl font-bold text-center mb-8 text-white font-cinzel">TimeRoster</h1>
                         <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4 shadow-2xl">
@@ -9676,10 +9676,25 @@ setShowEventModal(false);
                     alert(t('selectCalendarForShift'));
                     return;
                 }
-                if (sId) {
-                    await setDoc(doc(db, 'artifacts', appId, 'calendars', activeCalendarId, 'schedule', dateStr), { shiftId: sId });
-                } else {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'calendars', activeCalendarId, 'schedule', dateStr));
+                // Optimistic local update for instant UI feedback
+                setSchedule(prev => {
+                    const next = { ...prev };
+                    if (sId) {
+                        next[dateStr] = sId;
+                    } else {
+                        delete next[dateStr];
+                    }
+                    return next;
+                });
+                try {
+                    if (sId) {
+                        await setDoc(doc(db, 'artifacts', appId, 'calendars', activeCalendarId, 'schedule', dateStr), { shiftId: sId });
+                    } else {
+                        await deleteDoc(doc(db, 'artifacts', appId, 'calendars', activeCalendarId, 'schedule', dateStr));
+                    }
+                } catch (e) {
+                    console.error('Shift assign error:', e);
+                    // Revert on error – listener will re-sync
                 }
             };
             const clearShift = async (dateStr) => await assignShift(dateStr, null);
