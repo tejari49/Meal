@@ -8880,24 +8880,32 @@ function TimeRosterApp() {
                 
                 const checkUpcomingEvents = () => {
                     const now = new Date();
-                    const in15min = new Date(now.getTime() + 15 * 60 * 1000);
                     const todayStr = formatDate(now);
+                    const tomorrowStr = formatDate(new Date(now.getTime() + 24 * 60 * 60 * 1000));
                     
-                    events.forEach(ev => {
-                        if (!ev.time || !ev.date) return;
-                        const reminderId = `reminder-${ev.id}-${ev.date}`;
+                    // Collect today's and tomorrow's events (including recurring)
+                    const todayEvents = getEventsForDate(todayStr, events).map(ev => ({ ...ev, _checkDate: todayStr }));
+                    const tomorrowEvents = getEventsForDate(tomorrowStr, events).map(ev => ({ ...ev, _checkDate: tomorrowStr }));
+                    const allUpcoming = [...todayEvents, ...tomorrowEvents];
+                    
+                    allUpcoming.forEach(ev => {
+                        if (!ev.time) return;
+                        const reminderId = `reminder-${ev.id}-${ev._checkDate}`;
                         if (shownReminders.has(reminderId)) return;
                         
-                        const [hours, minutes] = ev.time.split(':').map(Number);
-                        const eventDate = new Date(ev.date + 'T' + ev.time);
+                        const reminderMin = ev.reminderMinutes || 15;
+                        const eventDate = new Date(ev._checkDate + 'T' + ev.time + ':00');
+                        if (isNaN(eventDate.getTime())) return;
                         
-                        // Check if event is within the next 15 minutes
-                        if (eventDate > now && eventDate <= in15min) {
+                        const diffMs = eventDate.getTime() - now.getTime();
+                        const diffMin = diffMs / 60000;
+                        
+                        // Notify if event is within reminderMinutes ahead (and not already past)
+                        if (diffMin > 0 && diffMin <= reminderMin) {
                             shownReminders.add(reminderId);
-                            const minutesUntil = Math.round((eventDate - now) / 60000);
                             showLocalNotification(
-                                'Kalender aktualisiert',
-                                'Es gibt neue Updates.',
+                                t('notificationEventReminder'),
+                                `${ev.title || 'Termin'} ${t('notificationEventReminderBody')} (${Math.round(diffMin)} min)`,
                                 reminderId
                             );
                         }
