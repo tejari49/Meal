@@ -3848,7 +3848,7 @@
                                 <div className="flex items-center gap-3"><div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center"><MessageCircle size={14}/></div><span className="font-bold text-sm tracking-tight">{t('messenger')}</span><span className="text-[11px] font-bold px-2 py-1 rounded-full bg-amber-500/20 text-amber-200 border border-amber-500/30 flex items-center gap-1"><span aria-hidden="true">🔒</span><span>Secret</span></span></div>
                                 <div className="flex items-center gap-1">
                                     <button onClick={() => setView('profile')} title={t('profile')} className="cam-control-btn" style={{width:32,height:32,background:'rgba(255,255,255,0.06)'}}><User size={14}/></button>
-                                    <button onClick={() => { try { if (window.__lockSecretPremium) window.__lockSecretPremium(); } catch(e) {}; onClose && onClose(); }} title="Secret sperren" className="cam-control-btn" style={{width:32,height:32,background:'rgba(255,255,255,0.06)'}}><Lock size={14}/></button>
+                                    <button onClick={() => { onClose && onClose(); }} title="Secret sperren" className="cam-control-btn" style={{width:32,height:32,background:'rgba(255,255,255,0.06)'}}><Lock size={14}/></button>
                                     <button onClick={onClose} className="cam-control-btn" style={{width:32,height:32,background:'rgba(255,255,255,0.06)'}}><X size={14}/></button>
                                 </div>
                             </div>
