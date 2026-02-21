@@ -5105,7 +5105,7 @@
             };
 
             return (
-                <div ref={settingsRootRef} className=\"p-4 pb-32 space-y-4 h-full overflow-y-auto\">
+                <div ref={settingsRootRef} className="p-4 pb-32 space-y-4 h-full overflow-y-auto">
                     <div className={`rounded-xl overflow-hidden ${themeClasses.card}`}>
                         <button onClick={() => toggle('profile')} className="w-full p-4 flex justify-between items-center font-bold"><span className="flex items-center gap-2"><User size={18}/> Profil</span>{openSection==='profile'?<ChevronLeft className="-rotate-90"/>:<ChevronLeft className="rotate-0"/>}</button>
                         {openSection === 'profile' && (
