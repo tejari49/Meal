@@ -404,7 +404,7 @@
             console.warn('FCM not available in this environment:', e?.message || e);
         }
         const APP_URL = "https://tejari49.github.io/Meal/";
-        const DEFAULT_VAPID_KEY = ""; // Admin config: set the Web Push certificate key (VAPID public key) once (per app/project) to enable push on this device.
+        const DEFAULT_VAPID_KEY = "BCimad9JkfJR6BqIR2ZyxaxFw4JKmN3IFojnKPk2a_rkL0J4w-9tXFquk-Xvg4BXAuJTkd-HAkZKsJFlGusJtCI"; // Admin config: set the Web Push certificate key (VAPID public key) once (per app/project) to enable push on this device.
         const getVapidKey = () => (localStorage.getItem('timeroster_fcm_vapid_key') || DEFAULT_VAPID_KEY || '').trim();
 
 
