@@ -1,4 +1,4 @@
-const CACHE_NAME = 'meal-ghpwa-v6';
+const CACHE_NAME = 'meal-ghpwa-v7';
 
 // Scope ist bei GitHub Pages automatisch: https://tejari49.github.io/Meal/
 const APP_SCOPE = self.registration.scope; // endet mit /
