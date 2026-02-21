@@ -5,7 +5,7 @@ const APP_SCOPE = self.registration.scope; // endet mit /
 const APP_URL = APP_SCOPE;
 
 const APP_SHELL = [
-  './',                    // /Meal/
+  './',
   './index.html',
   './manifest.webmanifest',
   './sw.js',

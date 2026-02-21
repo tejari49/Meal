@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta name="fcm-vapid-key" content="" />
+    <meta name="fcm-vapid-key" content="BCimad9JkfJR6BqIR2ZyxaxFw4JKmN3IFojnKPk2a_rkL0J4w-9tXFquk-Xvg4BXAuJTkd-HAkZKsJFlGusJtCI" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TimeRoster</title>
@@ -25,7 +25,7 @@
         // Service Worker for offline + installability (works on GitHub Pages)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js?v=20260220c', { scope: './' })
+                navigator.serviceWorker.register('./sw.js?v=20260221a', { scope: './' })
                     .catch(err => console.warn('Service Worker registration failed:', err));
             });
         }
@@ -11244,5 +11244,31 @@ setShowEventModal(false);
         root.render(<TimeRosterApp />);
     
 </script>
+
+<script>
+(function(){
+  function scrub(root){
+    try{
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+      const kill = [];
+      while(walker.nextNode()){
+        const n = walker.currentNode;
+        const s = (n.nodeValue || '').trim();
+        if (s === '}}' || s === '})}' || s === '})') kill.push(n);
+      }
+      for (const n of kill){
+        try{ n.parentNode && n.parentNode.removeChild(n); }catch(e){}
+      }
+    }catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    scrub(document.body);
+    const obs = new MutationObserver(() => scrub(document.body));
+    obs.observe(document.body, { childList:true, subtree:true, characterData:true });
+    window.__scrubBraces = () => scrub(document.body);
+  });
+})();
+</script>
+
 </body>
 </html>
