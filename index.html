@@ -25,7 +25,7 @@
         // Service Worker for offline + installability (works on GitHub Pages)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js?v=20260221c', { scope: './' })
+                navigator.serviceWorker.register('./sw.js?v=20260221d', { scope: './' })
                     .catch(err => console.warn('Service Worker registration failed:', err));
             });
         }
@@ -1267,7 +1267,7 @@
             pendingRequests: "Offene Anfragen", myFriends: "Meine Freunde", backToMe: "Zurück zu mir", viewing: "Ansichtsmodus",
             friend: "Freund", friends: "Freunde", member: "Mitglied", members: "Mitglieder", selected: "ausgewählt",
             addFriend: "Freund per Code adden", shareCode: "Dein Freundes-Code",
-            shareCodePlaceholder: "rai123456",
+            shareCodePlaceholder: "z.B. Happymeal94",
             emailPlaceholder: "Email",
             passwordPlaceholder: "Passwort",
             nameExample: "z.B. Leo",
@@ -1766,7 +1766,7 @@
                 friend: "friend", friends: "friends", member: "member", members: "members", selected: "selected",
             addFriend: "Add friend by code",
             shareCode: "Your friend code",
-            shareCodePlaceholder: "rai123456",
+            shareCodePlaceholder: "z.B. Happymeal94",
             emailPlaceholder: "Email",
             passwordPlaceholder: "Password",
             nameExample: "e.g. Leo",
@@ -2219,7 +2219,7 @@
                 friend: "amico", friends: "amici", member: "membro", members: "membri", selected: "selezionato",
                 addFriend: "Aggiungi amico con codice",
                 shareCode: "Il tuo codice amico",
-                shareCodePlaceholder: "rai123456",
+                shareCodePlaceholder: "z.B. Happymeal94",
                 emailPlaceholder: "Email",
                 passwordPlaceholder: "Password",
                 nameExample: "es. Leo",
@@ -4223,7 +4223,7 @@
                                         <div className="flex-1 min-w-0">
                                             <div className={`font-semibold text-sm truncate ${messagesDarkMode ? 'text-white' : 'text-slate-900'}`}>
                                                 {activeConversation.name}
-                                                <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/25 align-middle"><span aria-hidden="true">🔒</span><span>Secret</span></span>
+                                                <span className={`ml-2 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full align-middle ${messagesDarkMode ? "bg-amber-500/20 text-amber-200 border border-amber-500/30" : "bg-amber-500/15 text-amber-700 border border-amber-500/25"}`}><span aria-hidden="true">🔒</span><span>Secret</span></span>
                                             </div>
                                         </div>
                                     </div>
@@ -4975,7 +4975,9 @@
         };
 
         // --- SETTINGS COMPONENT ---
-            const SettingsView = ({ theme, setTheme, lang, setLang, fontScale, setFontScale, currentFont, setCurrentFont, shifts, saveShiftConfig, deleteShift, signOut, themeClasses, user, shareCode, displayName, setDisplayName, onSaveDisplayName, onOpenVisualEditor, onOpenFriends, settingsEditorLang, setSettingsEditorLang, openCustomThemeWizard, onApplyAiDesign, onOpenCalendarManager, onOpenCalendarSettings, onExportCalendarICS, calendars, friends, activeCalendarId, setActiveCalendarId, updateCalendar, shareCalendarWithUser, holidayCountries, holidayCountriesLoading, holidayCountriesError, holidayPref, setHolidayPref, holidaySyncing, holidayLastSync, onSyncHolidays, holidayFilter, setHolidayFilter, notificationPrefs, saveNotificationPrefs, notificationsSupported, fcmToken, requestNotificationPermission, pwaInstallPrompt, isPwaInstalled, installPwa, onRegisterFcm, notifLoadingProp: notifLoadingProp = false, setNotifLoading = () => {}, notifErrorProp: notifErrorProp = null, setNotifError = () => {} }) => {
+            const SettingsView = ({ theme, setTheme, lang, setLang, fontScale, setFontScale, currentFont, setCurrentFont, shifts, saveShiftConfig, deleteShift, signOut, themeClasses, user, shareCode, displayName, setDisplayName, onSaveDisplayName, onOpenVisualEditor, onOpenFriends, settingsEditorLang, setSettingsEditorLang, openCustomThemeWizard, onApplyAiDesign, onOpenCalendarManager, onOpenCalendarSettings, onExportCalendarICS, calendars, friends, activeCalendarId, setActiveCalendarId, updateCalendar, shareCalendarWithUser, holidayCountries, holidayCountriesLoading, holidayCountriesError, holidayPref, setHolidayPref, holidaySyncing, holidayLastSync, onSyncHolidays, holidayFilter, setHolidayFilter, notificationPrefs, saveNotificationPrefs, notificationsSupported, fcmToken, requestNotificationPermission, notifPermission, pwaInstallPrompt, isPwaInstalled, installPwa, onRegisterFcm, notifLoadingProp: notifLoadingProp = false, setNotifLoading = () => 
+            const notifPermissionProp = (typeof notifPermission !== 'undefined' && notifPermission) ? notifPermission : ((typeof Notification !== 'undefined') ? notifPermissionProp : 'default');
+{}, notifErrorProp: notifErrorProp = null, setNotifError = () => {} }) => {
             const [openSection, setOpenSection] = useState(null);
             const settingsRootRef = useRef(null);
 
@@ -5518,10 +5520,14 @@
                                 {notificationsSupported && (
                                     <div className="text-xs space-y-1">
                                         <div className="opacity-70">
-                                            {Notification.permission === 'denied'
+                                            {notifPermissionProp === 'denied'
                                                 ? t('notificationPermissionDenied')
-                                                : (Notification.permission === 'granted' ? t('notificationEnabled') : t('notificationDisabled'))}
+                                                : (notifPermissionProp === 'granted' ? t('notificationEnabled') : t('notificationDisabled'))}
                                         </div>
+                                        <div className="opacity-70">
+                                            Push/FCM: {fcmToken ? 'Token OK' : 'kein Token'}
+                                        </div>
+
                                         {notifErrorProp === 'missingVapid' && (
                                             <div className="text-amber-400 bg-amber-400/10 p-2 rounded-lg">
                                                 Admin-Setup fehlt: VAPID-Key ist leer. Push/FCM kann kein Token erstellen.
@@ -8299,6 +8305,7 @@ function TimeRosterApp() {
             const [lastUnreadUpdate, setLastUnreadUpdate] = useState(null);
             const [fcmToken, setFcmToken] = useState(null);
             const [notificationsSupported, setNotificationsSupported] = useState(false);
+            const [notifPermission, setNotifPermission] = useState((typeof Notification !== 'undefined') ? Notification.permission : 'default');
             const [notifLoading, setNotifLoading] = useState(false);
             const [notifError, setNotifError] = useState(null);
             
@@ -8580,6 +8587,7 @@ function TimeRosterApp() {
                     }
                     
                     const permission = await Notification.requestPermission();
+                    try { setNotifPermission(permission); } catch(e) {}
                     if (permission === 'granted') {
                         setNotificationsSupported(true);
                         // local permission granted; push token will be registered separately
@@ -11134,7 +11142,7 @@ setShowEventModal(false);
                         />
                     )}
 
-                    {view === 'settings' && <SettingsView onRegisterFcm={async () => await registerFcmToken()} theme={theme} setTheme={setTheme} lang={lang} setLang={(nextLang) => { setLang(nextLang); setCurrentLang(nextLang); setSettingsEditorLang(nextLang); }} fontScale={fontScale} setFontScale={setFontScale} currentFont={currentFont} setCurrentFont={setCurrentFont} shifts={shifts} saveShiftConfig={saveShiftConfig} deleteShift={deleteShift} signOut={signOut} auth={auth} themeClasses={themeClasses} user={user} shareCode={shareCode} displayName={displayName} setDisplayName={setDisplayName} onSaveDisplayName={saveDisplayName} onOpenVisualEditor={() => setShowVisualSettingsEditor(true)} onOpenFriends={() => setView('friends')} settingsEditorLang={settingsEditorLang} setSettingsEditorLang={setSettingsEditorLang} openCustomThemeWizard={() => setShowCustomThemeWizard(true)} onApplyAiDesign={(prompt) => applyAiDesign({ prompt, setTheme, setCustomTheme, setCurrentFont, setFontScale })} onOpenCalendarManager={() => setShowCalendarManager(true)} onOpenCalendarSettings={(calendar) => { setSelectedCalendarForSettings(calendar); setShowCalendarSettings(true); }} onExportCalendarICS={exportCalendarICS} calendars={calendars} friends={friends} activeCalendarId={activeCalendarId} setActiveCalendarId={setActiveCalendarId} updateCalendar={updateCalendar} shareCalendarWithUser={shareCalendarWithUser} holidayCountries={holidayCountries} holidayCountriesLoading={holidayCountriesLoading} holidayCountriesError={holidayCountriesError} holidayPref={holidayPref} setHolidayPref={setHolidayPref} holidaySyncing={holidaySyncing} holidayLastSync={holidayLastSync} onSyncHolidays={syncHolidays} holidayFilter={holidayFilter} setHolidayFilter={setHolidayFilter} notificationPrefs={notificationPrefs} saveNotificationPrefs={saveNotificationPrefs} notificationsSupported={notificationsSupported} fcmToken={fcmToken} requestNotificationPermission={requestNotificationPermission} pwaInstallPrompt={pwaInstallPrompt} isPwaInstalled={isPwaInstalled} installPwa={installPwa} notifLoading={notifLoading} setNotifLoading={setNotifLoading} notifError={notifError} setNotifError={setNotifError} />}
+                    {view === 'settings' && <SettingsView onRegisterFcm={async () => await registerFcmToken()} theme={theme} setTheme={setTheme} lang={lang} setLang={(nextLang) => { setLang(nextLang); setCurrentLang(nextLang); setSettingsEditorLang(nextLang); }} fontScale={fontScale} setFontScale={setFontScale} currentFont={currentFont} setCurrentFont={setCurrentFont} shifts={shifts} saveShiftConfig={saveShiftConfig} deleteShift={deleteShift} signOut={signOut} auth={auth} themeClasses={themeClasses} user={user} shareCode={shareCode} displayName={displayName} setDisplayName={setDisplayName} onSaveDisplayName={saveDisplayName} onOpenVisualEditor={() => setShowVisualSettingsEditor(true)} onOpenFriends={() => setView('friends')} settingsEditorLang={settingsEditorLang} setSettingsEditorLang={setSettingsEditorLang} openCustomThemeWizard={() => setShowCustomThemeWizard(true)} onApplyAiDesign={(prompt) => applyAiDesign({ prompt, setTheme, setCustomTheme, setCurrentFont, setFontScale })} onOpenCalendarManager={() => setShowCalendarManager(true)} onOpenCalendarSettings={(calendar) => { setSelectedCalendarForSettings(calendar); setShowCalendarSettings(true); }} onExportCalendarICS={exportCalendarICS} calendars={calendars} friends={friends} activeCalendarId={activeCalendarId} setActiveCalendarId={setActiveCalendarId} updateCalendar={updateCalendar} shareCalendarWithUser={shareCalendarWithUser} holidayCountries={holidayCountries} holidayCountriesLoading={holidayCountriesLoading} holidayCountriesError={holidayCountriesError} holidayPref={holidayPref} setHolidayPref={setHolidayPref} holidaySyncing={holidaySyncing} holidayLastSync={holidayLastSync} onSyncHolidays={syncHolidays} holidayFilter={holidayFilter} setHolidayFilter={setHolidayFilter} notificationPrefs={notificationPrefs} saveNotificationPrefs={saveNotificationPrefs} notificationsSupported={notificationsSupported} fcmToken={fcmToken} requestNotificationPermission={requestNotificationPermission} notifPermission={notifPermission} pwaInstallPrompt={pwaInstallPrompt} isPwaInstalled={isPwaInstalled} installPwa={installPwa} notifLoading={notifLoading} setNotifLoading={setNotifLoading} notifError={notifError} setNotifError={setNotifError} />}
                     </main>
                     )}
 
