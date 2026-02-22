@@ -1267,7 +1267,7 @@
             pendingRequests: "Offene Anfragen", myFriends: "Meine Freunde", backToMe: "Zurück zu mir", viewing: "Ansichtsmodus",
             friend: "Freund", friends: "Freunde", member: "Mitglied", members: "Mitglieder", selected: "ausgewählt",
             addFriend: "Freund per Code adden", shareCode: "Dein Freundes-Code",
-            shareCodePlaceholder: "z.B. Happymeal94",
+            shareCodePlaceholder: "z.B. RaiTimer49",
             emailPlaceholder: "Email",
             passwordPlaceholder: "Passwort",
             nameExample: "z.B. Leo",
@@ -1592,6 +1592,7 @@
             groupCreated: "Gruppe erstellt!",
             requestSent: "Anfrage gesendet!",
             errorAddFriend: "Fehler beim Hinzufügen.",
+                        permissionDenied: "Keine Berechtigung (Login/Firestore-Rules prüfen).",
             codeNotFound: "Code nicht gefunden",
             selfRequest: "Das bist du!",
             nameSaved: "Name gespeichert.",
@@ -1766,7 +1767,7 @@
                 friend: "friend", friends: "friends", member: "member", members: "members", selected: "selected",
             addFriend: "Add friend by code",
             shareCode: "Your friend code",
-            shareCodePlaceholder: "z.B. Happymeal94",
+            shareCodePlaceholder: "z.B. RaiTimer49",
             emailPlaceholder: "Email",
             passwordPlaceholder: "Password",
             nameExample: "e.g. Leo",
@@ -2219,7 +2220,7 @@
                 friend: "amico", friends: "amici", member: "membro", members: "membri", selected: "selezionato",
                 addFriend: "Aggiungi amico con codice",
                 shareCode: "Il tuo codice amico",
-                shareCodePlaceholder: "z.B. Happymeal94",
+                shareCodePlaceholder: "z.B. RaiTimer49",
                 emailPlaceholder: "Email",
                 passwordPlaceholder: "Password",
                 nameExample: "es. Leo",
@@ -2859,6 +2860,13 @@
             const [messages, setMessages] = useState([]);
             const [input, setInput] = useState('');
             const [myCode, setMyCode] = useState('');
+	            // Local UI error for Secret Chat (was previously missing and caused "setUiError is not defined")
+	            const [uiError, setUiError] = useState('');
+	            useEffect(() => {
+	                if (!uiError) return;
+	                const timer = setTimeout(() => setUiError(''), 4500);
+	                return () => clearTimeout(timer);
+	            }, [uiError]);
             const ensureSecretContact = async (friendId, name = '') => {
                 if (!user || !friendId) return;
                 try {
@@ -4228,7 +4236,12 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div className={`flex-1 overflow-y-auto space-y-3 p-4 rounded-2xl border ${messagesDarkMode ? 'chat-shell-dark border-white/5' : 'chat-shell-light border-slate-200/50'}`}>
+	                                    {uiError && (
+	                                        <div className={`mb-2 px-3 py-2 rounded-xl text-xs font-bold border ${messagesDarkMode ? 'bg-red-500/20 text-red-200 border-red-500/30' : 'bg-red-50 text-red-700 border-red-200'}`}>
+	                                            {uiError}
+	                                        </div>
+	                                    )}
+	                                    <div className={`flex-1 overflow-y-auto space-y-3 p-4 rounded-2xl border ${messagesDarkMode ? 'chat-shell-dark border-white/5' : 'chat-shell-light border-slate-200/50'}`}>
                                         {hasMoreMessages && (
                                             <button 
                                                 onClick={() => setMessageLimit(prev => prev + MESSAGE_BATCH_SIZE)} 
@@ -4942,6 +4955,8 @@
                         const msg = String(e && e.message ? e.message : e);
                         if (msg.includes('CODE_NOT_FOUND')) return alert(t('codeNotFound'));
                         if (msg.includes('SELF_REQUEST')) return alert(t('selfRequest'));
+                        const code = String(e && e.code ? e.code : '');
+                        if (code.includes('permission-denied') || msg.includes('Missing or insufficient permissions')) return alert(t('permissionDenied'));
                         alert(t('errorAddFriend'));
                     })
                     .finally(() => setLoading(false));
@@ -4953,7 +4968,7 @@
                 const batch = writeBatch(db);
                 batch.update(doc(db, 'artifacts', appId, 'users', user.uid, 'friends', fid), { status: 'accepted' });
                 batch.update(doc(db, 'artifacts', appId, 'users', fid, 'friends', user.uid), { status: 'accepted' });
-                batch.commit().catch((e) => console.error('accept friend error', e));
+                batch.commit().catch((e) => { console.error('accept friend error', e); const msg = String(e && e.message ? e.message : e); const code = String(e && e.code ? e.code : ''); if (code.includes('permission-denied') || msg.includes('Missing or insufficient permissions')) alert(t('permissionDenied')); });
             };
 
             return (
